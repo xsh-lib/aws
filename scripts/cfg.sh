@@ -2,30 +2,30 @@
 
 #? Usage:
 #?     @cfg -l
-#? 	   @cfg -a PROFILE
-#? 	   @cfg -c TARGET_PROFILE [-s SOURCE_PROFILE] [-r REGION]
+#?     @cfg -a PROFILE
+#?     @cfg -c TARGET_PROFILE [-s SOURCE_PROFILE] [-r REGION]
 #?
 #? Options:
-#? 	   -l
+#?     -l
 #?
-#? 	   List all profiles.
+#?     List all profiles.
 #?
-#? 	   -a PROFILE
+#?     -a PROFILE
 #?
-#? 	   Set the profile as default.
+#?     Set the profile as default.
 #?
-#? 	   -c TARGET_PROFILE
+#?     -c TARGET_PROFILE
 #?
-#? 	   Copy source profile to target profile.
-#? 	   If target profile already exists, will be overrided.
+#?     Copy source profile to target profile.
+#?     If target profile already exists, will be overrided.
 #?
-#? 	   [-s SOURCE_PROFILE]
+#?     [-s SOURCE_PROFILE]
 #?
-#? 	   Use with -c, specify source profile name, default to use current profile.
+#?     Use with -c, specify source profile name, default to use current profile.
 #?
-#? 	   [-r REGION]
+#?     [-r REGION]
 #?
-#? 	   Use with -c, specify a new region name.
+#?     Use with -c, specify a new region name.
 #?
 
 CONF_DIR=~/.aws
