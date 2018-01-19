@@ -4,7 +4,6 @@
 #?     @cfg -l
 #? 	   @cfg -a PROFILE
 #? 	   @cfg -c TARGET_PROFILE [-s SOURCE_PROFILE] [-r REGION]
-#? 	   @cfg -h
 #?
 #? Options:
 #? 	   -l
@@ -28,9 +27,6 @@
 #?
 #? 	   Use with -c, specify a new region name.
 #?
-#? 	   -h
-#?
-#? 	   This help.
 
 CONF_DIR=~/.aws
 CONF_FILE=${CONF_DIR}/config
@@ -204,14 +200,14 @@ while getopts la:c:s:r:h opt; do
         r)
             region=$OPTARG
             ;;
-        h|*)
-            usage
+        *)
+            exit 255
             ;;
     esac
 done
 
 if [[ -z $action ]]; then
-    usage
+    exit 255
 fi
 
 # check profile
