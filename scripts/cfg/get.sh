@@ -12,8 +12,8 @@ function get () {
     local profiles properties
     local profile property var
 
-    xsh /ini/parse -p '__CFG_INI_' ~/.aws/config
-    xsh /ini/parse -p '__CRED_INI_' ~/.aws/credentials
+    xsh /ini/parser -p '__CFG_INI_' ~/.aws/config
+    xsh /ini/parser -p '__CRED_INI_' ~/.aws/credentials
 
     profiles=( "${__CFG_INI_SECTIONS[@]#profile_}" )
 
@@ -26,14 +26,14 @@ function get () {
 
     for profile in "${profiles[@]}"; do
         var=__CFG_INI_SECTIONS_${profile}
-        if [[ ! ${!var+x} ]]; then  # the variable was declared
+        if [[ ! ${!var+x} ]]; then  # the variable was not declared
             var=__CFG_INI_SECTIONS_profile_${profile}
         fi
         printf "%s" ${!var#profile }
 
         for property in "${properties[@]}"; do
             var=${property#*:}SECTIONS_${profile}_VALUES_${property%:*}
-            if [[ ! ${!var+x} ]]; then  # the variable was declared
+            if [[ ! ${!var+x} ]]; then  # the variable was not declared
                 var=${property#*:}SECTIONS_profile_${profile}_VALUES_${property%:*}
             fi
             printf ",%s" ${!var}
@@ -42,6 +42,6 @@ function get () {
     done | sort
 }
 
-get
+get "$@"
 
 exit
