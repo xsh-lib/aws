@@ -9,37 +9,37 @@
 #? Output:
 #?
 function get () {
-    local profiles properties
-    local profile property var
+    local profile property varname base_dir
 
-    xsh /ini/parser -p '__CFG_INI_' ~/.aws/config
-    xsh /ini/parser -p '__CRED_INI_' ~/.aws/credentials
+    base_dir=$(cd "$(dirname "$0")"; pwd)
+    . "${base_dir}/config.conf"
 
-    profiles=( "${__CFG_INI_SECTIONS[@]#profile_}" )
+    xsh /ini/parser -p "${AWS_CFG_CONFIG_ENV_PREFIX}" "${AWS_CFG_CONFIG}"
+    xsh /ini/parser -p "${AWS_CFG_CREDENTIALS_ENV_PREFIX}" "${AWS_CFG_CREDENTIALS}"
 
-    properties=(
-        region:__CFG_INI_
-        aws_access_key_id:__CRED_INI_
-        aws_secret_access_key:__CRED_INI_
-        output:__CFG_INI_
-    )
+    varname=${AWS_CFG_CONFIG_ENV_PREFIX}SECTIONS[@]
+    for profile in "${!varname}"; do
+        # output profile name as first field
+        varname=${AWS_CFG_CONFIG_ENV_PREFIX}SECTIONS_${profile}
 
-    for profile in "${profiles[@]}"; do
-        var=__CFG_INI_SECTIONS_${profile}
-        if [[ ! ${!var+x} ]]; then  # the variable was not declared
-            var=__CFG_INI_SECTIONS_profile_${profile}
+        if [[ ! ${!varname+x} ]]; then  # the variable was not declared
+            varname=${AWS_CFG_CONFIG_ENV_PREFIX}SECTIONS_${profile#profile_}
         fi
-        printf "%s" ${!var#profile }
+        printf "%s" "${!varname#profile }"
 
-        for property in "${properties[@]}"; do
-            var=${property#*:}SECTIONS_${profile}_VALUES_${property%:*}
-            if [[ ! ${!var+x} ]]; then  # the variable was not declared
-                var=${property#*:}SECTIONS_profile_${profile}_VALUES_${property%:*}
+        # output rest of properties as fields
+        for property in "${AWS_CFG_PROPERTIES[@]}"; do
+            varname=${property%\.*}_SECTIONS_${profile}_VALUES_${property#*\.}
+
+            if [[ ! ${!varname+x} ]]; then  # the variable was not declared
+                varname=${property%\.*}_SECTIONS_${profile#profile_}_VALUES_${property#*\.}
             fi
-            printf ",%s" ${!var}
+            printf ",%s" "${!varname}"
         done
+
+        # end of line
         printf "\n"
-    done | sort
+    done | sort | column -s, -t
 }
 
 get "$@"
