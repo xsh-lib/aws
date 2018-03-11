@@ -8,7 +8,7 @@
 #?   PROPERTY  Property values, in the same sequence that output by cfg/get
 #?
 #? Output:
-#?   None
+#?   Updated profile.
 #?
 function set () {
     local name=${1:-default}
@@ -22,6 +22,8 @@ function set () {
         aws configure set "${property#*.}" "${!n}" --profile "${name}"
         n=$((n+1))
     done
+
+    xsh aws/cfg/get "${name}"
 }
 
 set "$@"

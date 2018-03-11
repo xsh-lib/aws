@@ -9,7 +9,7 @@
 #?   [REGION]  New region name.
 #?
 #? Output:
-#?   None
+#?   New profile.
 #?
 function copy () {
     local source target region
@@ -19,12 +19,14 @@ function copy () {
     region=$3
 
     printf "copying profile from: ${source} to: ${target}\n"
-    xsh aws/cfg/set "${target}" $(xsh aws/cfg/get "${source}")
+    xsh aws/cfg/set $(xsh aws/cfg/get "${source}" | column -s, -t | sed "s/^${source}/${target}/") > /dev/null
 
     if [[ -n ${region} ]]; then
         printf "updating ${target} region to: ${region}\n"
         aws configure set region "${region}" --profile "${target}"
     fi
+
+    xsh aws/cfg/get "${target}"
 }
 
 copy "$@"
