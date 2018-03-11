@@ -14,7 +14,7 @@ function set () {
     local name=${1:-default}
     local base_dir property n
 
-    base_dir=$(cd "$(dirname "$0")"; pwd)
+    base_dir=$(dirname "$(readlink "$0")")
     . "${base_dir}/config.conf"
 
     n=2  # profile properties started at $2
