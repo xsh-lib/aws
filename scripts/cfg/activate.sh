@@ -24,8 +24,8 @@ function activate () {
     fi
 
     printf "activating profile: ${profile}\n"
-    n=0  # profile properties started at $2
-    for property in $(xsh aws/cfg/get "${profile}" | cut -d, -f2-); do
+    n=0
+    for property in $(xsh aws/cfg/get "${profile}" | cut -f2-); do
         aws configure set "default.${AWS_CFG_PROPERTIES[n]#*.}" "${property}"
         n=$((n+1))
     done

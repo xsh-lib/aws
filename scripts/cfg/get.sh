@@ -27,7 +27,7 @@ function get () {
         else
             __get "${profile}"
         fi
-    done | sort
+    done | sort | column -s, -t
 }
 
 function __get () {
