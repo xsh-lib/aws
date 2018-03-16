@@ -26,7 +26,7 @@ function copy () {
         aws configure set region "${region}" --profile "${target}"
     fi
 
-    xsh aws/cfg/get "${target}"
+    xsh aws/cfg/get -m "${target}"
 }
 
 copy "$@"

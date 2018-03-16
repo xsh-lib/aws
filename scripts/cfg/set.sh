@@ -32,7 +32,7 @@ function set () {
         n=$((n+1))
     done
 
-    xsh aws/cfg/get "${name}"
+    xsh aws/cfg/get -m "${name}"
 }
 
 set "$@"

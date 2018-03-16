@@ -29,7 +29,7 @@ function activate () {
         aws configure set "default.${AWS_CFG_PROPERTIES[n]#*.}" "${property}"
         n=$((n+1))
     done
-    xsh aws/cfg/get "${profile}"
+    xsh aws/cfg/get -m "${profile}"
 }
 
 activate "$@"
