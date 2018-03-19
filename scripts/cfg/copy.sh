@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 #? Usage:
 #?   @copy SOURCE TARGET [REGION]
@@ -17,6 +17,11 @@ function copy () {
     source=$1
     target=$2
     region=$3
+
+    if [[ -z ${source} || -z ${target} ]]; then
+        printf "ERROR: parameter SOURCE and/or TARGET null or not set.\n" >&2
+        return 255
+    fi
 
     printf "copying profile from: ${source} to: ${target}\n"
     xsh aws/cfg/set $(xsh aws/cfg/get "${source}" \

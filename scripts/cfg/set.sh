@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 #? Usage:
 #?   @set PROFILE PROPERTY ...
@@ -18,7 +18,7 @@ function set () {
     . "${base_dir}/config.conf"
 
     if [[ -z ${name} ]]; then
-        printf "ERROR: profile name null or not set.\n" >&2
+        printf "ERROR: parameter PROFILE null or not set.\n" >&2
         return 255
     fi
 

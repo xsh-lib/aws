@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 #? Usage:
 #?   @activate PROFILE
@@ -16,8 +16,11 @@ function activate () {
     base_dir=$(dirname "$(xsh /file/symblink "$0")")
     . "${base_dir}/config.conf"
 
-    if [[ ${profile} == 'default' ]]; then
-        printf "default profile doesn't need to activate.\n"
+    if [[ -z ${profile} ]]; then
+        printf "ERROR: parameter PROFILE null or not set.\n" >&2
+        return 255
+    elif [[ ${profile} == 'default' ]]; then
+        printf "ERROR: default profile doesn't need to activate.\n" >&2
         return 255
     else
         :
