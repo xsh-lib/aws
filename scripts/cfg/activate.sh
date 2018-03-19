@@ -25,11 +25,13 @@ function activate () {
 
     printf "activating profile: ${profile}\n"
     n=0
-    for property in $(xsh aws/cfg/get "${profile}" | awk '{$1=""; print}'); do
+    for property in $(xsh aws/cfg/get "${profile}" \
+                          | column -s, -t \
+                          | awk '{$1=""; print}'); do
         aws configure set "default.${AWS_CFG_PROPERTIES[n]#*.}" "${property}"
         n=$((n+1))
     done
-    xsh aws/cfg/get -m "${profile}"
+    xsh aws/cfg/list
 }
 
 activate "$@"

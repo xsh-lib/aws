@@ -1,33 +1,18 @@
 #!/bin/bash
 
 #? Usage:
-#?   @get [-m] [PROFILE] ...
+#?   @get [PROFILE] ...
 #?
 #? Options:
-#?   [-m]       Mask sensitive data in output.
-#?
 #?   [PROFILE]  Profile name.
 #?
 #? Output:
 #?   List of profiles with properties.
 #?
 function get () {
-    local opt OPTIND OPTARG
     local name
     local profile varname base_dir
-    local result
 
-    while getopts m opt; do
-        case ${opt} in
-            m)
-                mask=1
-                ;;
-            *)
-                return 255
-                ;;
-        esac
-    done
-    shift $((OPTIND - 1))
     name=$1
 
     base_dir=$(dirname "$(xsh /file/symblink "$0")")
@@ -38,19 +23,13 @@ function get () {
 
     varname=${AWS_CFG_CONFIG_ENV_PREFIX}SECTIONS[@]
 
-    result=$(for profile in "${!varname}"; do
-                 if [[ -n ${name} ]]; then
-                     __get "${profile}" | grep "^${name},"
-                 else
-                     __get "${profile}"
-                 fi
-             done | sort | column -s, -t)
-
-    if [[ ${mask} -eq 1 ]]; then
-        echo "${result}" | xsh /file/mask -f4 -c1-36 -x | column -t
-    else
-        echo "${result}"
-    fi
+    for profile in "${!varname}"; do
+        if [[ -n ${name} ]]; then
+            __get "${profile}" | grep "^${name},"
+        else
+            __get "${profile}"
+        fi
+    done | sort
 }
 
 function __get () {
