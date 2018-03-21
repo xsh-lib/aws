@@ -10,7 +10,7 @@ function list () {
     local result pattern
     local i sep str properties property sensitive base_dir
 
-    base_dir=$(dirname "$(xsh /file/symblink "$0")")
+    base_dir=$(dirname "$(xsh /file/lnkpath "$0")")
     . "${base_dir}/config.conf"
 
     properties=(

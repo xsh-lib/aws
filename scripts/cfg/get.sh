@@ -15,7 +15,7 @@ function get () {
 
     name=$1
 
-    base_dir=$(dirname "$(xsh /file/symblink "$0")")
+    base_dir=$(dirname "$(xsh /file/lnkpath "$0")")
     . "${base_dir}/config.conf"
 
     xsh /ini/parser -p "${AWS_CFG_CONFIG_ENV_PREFIX}" "${AWS_CFG_CONFIG}"

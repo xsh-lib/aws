@@ -13,7 +13,7 @@ function activate () {
     local profile=$1
     local base_dir property n
 
-    base_dir=$(dirname "$(xsh /file/symblink "$0")")
+    base_dir=$(dirname "$(xsh /file/lnkpath "$0")")
     . "${base_dir}/config.conf"
 
     if [[ -z ${profile} ]]; then
