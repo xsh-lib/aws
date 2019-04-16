@@ -18,8 +18,8 @@ function get () {
     base_dir=$(dirname "$(xsh /file/lnkpath "$0")")
     . "${base_dir}/config.conf"
 
-    xsh /ini/parser -p "${AWS_CFG_CONFIG_ENV_PREFIX}" "${AWS_CFG_CONFIG}"
-    xsh /ini/parser -p "${AWS_CFG_CREDENTIALS_ENV_PREFIX}" "${AWS_CFG_CREDENTIALS}"
+    xsh /ini/parser -a -p "${AWS_CFG_CONFIG_ENV_PREFIX}" "${AWS_CFG_CONFIG}"
+    xsh /ini/parser -a -p "${AWS_CFG_CREDENTIALS_ENV_PREFIX}" "${AWS_CFG_CREDENTIALS}"
 
     varname=${AWS_CFG_CONFIG_ENV_PREFIX}SECTIONS[@]
 
