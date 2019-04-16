@@ -25,7 +25,8 @@ function get () {
 
     for profile in "${!varname}"; do
         if [[ -n ${name} ]]; then
-            __get "${profile}" | grep "^${name},"
+            __get "${profile}" | grep "^${name}," \
+                                      || : # keep shell going on grep failure
         else
             __get "${profile}"
         fi
