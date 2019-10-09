@@ -1,5 +1,3 @@
-#!/bin/bash -e
-
 #? Description:
 #?   Create snapshots for RDS instances.
 #?
@@ -18,7 +16,7 @@ function create () {
     while getopts i: opt; do
         case $opt in
             i)
-                instance_ids[${#instance_ids[@]}]=$OPTARG
+                instance_ids+=( "$OPTARG" )
                 ;;
             *)
                 return 255
@@ -36,7 +34,3 @@ function create () {
             --db-snapshot-identifier "${instance_id:?}-${ts:?}"
     done
 }
-
-create "$@"
-
-exit

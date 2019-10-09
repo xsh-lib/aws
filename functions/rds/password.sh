@@ -1,5 +1,3 @@
-#!/bin/bash -e
-
 #? Description:
 #?   Change master user password for RDS.
 #?
@@ -15,7 +13,3 @@ function password () {
         --db-instance-identifier "${1:?}" \
         --master-user-password "${2:?}"
 }
-
-password "$@"
-
-exit
