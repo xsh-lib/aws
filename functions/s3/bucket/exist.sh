@@ -1,5 +1,3 @@
-#!/bin/bash -e
-
 #? Description:
 #?   Check the S3 bucket existence.
 #?
@@ -13,7 +11,3 @@
 function exist () {
     aws s3 ls s3://${1:?} >/dev/null 2>&1
 }
-
-exist "$@"
-
-exit

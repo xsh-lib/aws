@@ -1,5 +1,3 @@
-#!/bin/bash -e
-
 #? Description:
 #?   Test performance for uploading to S3.
 #?
@@ -10,7 +8,7 @@
 #?   [DIR]    Directory to be uploaded, regex is allowed.
 #?            If no dir specified, will upload all directories under current path.
 #?
-function test--upload-performance () {
+function test-upload-performance () {
     local dirs=(
         $(find . -depth 1 -type d -name "$1" \
               | sort -n)
@@ -38,5 +36,3 @@ function test--upload-performance () {
 
     say -i ">>Done"
 }
-
-exit
