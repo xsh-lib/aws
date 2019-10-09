@@ -1,5 +1,3 @@
-#!/bin/bash -e
-
 #? Description:
 #?   Upload an IAM certificate.
 #?
@@ -17,7 +15,3 @@ function upload () {
         --certificate-body "$(cat "${2:?}")" \
         --private-key "$(cat "${3:?}")"
 }
-
-upload "$@"
-
-exit

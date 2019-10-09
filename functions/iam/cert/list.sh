@@ -1,5 +1,3 @@
-#!/bin/bash -e
-
 #? Description:
 #?   List IAM certificates.
 #?
@@ -16,6 +14,3 @@ function list () {
     aws iam list-server-certificates
 }
 
-list "$@"
-
-exit

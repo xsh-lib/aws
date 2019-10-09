@@ -1,5 +1,3 @@
-#!/bin/bash -e
-
 #? Description:
 #?   Rename an IAM certificate.
 #?
@@ -17,7 +15,3 @@ function rename () {
             --new-server-certificate-name "${2:?}"
     fi
 }
-
-rename "$@"
-
-exit
