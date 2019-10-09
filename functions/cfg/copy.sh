@@ -1,5 +1,3 @@
-#!/bin/bash -e
-
 #? Usage:
 #?   @copy SOURCE TARGET [REGION]
 #?
@@ -35,7 +33,3 @@ function copy () {
 
     xsh aws/cfg/list
 }
-
-copy "$@"
-
-exit

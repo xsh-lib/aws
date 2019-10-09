@@ -1,5 +1,3 @@
-#!/bin/bash -e
-
 #? Usage:
 #?   @list
 #?
@@ -10,7 +8,7 @@ function list () {
     local result pattern
     local i sep str properties property sensitive base_dir
 
-    base_dir=$(dirname "$(xsh /file/lnkpath "$0")")
+    base_dir="${XSH_HOME}/lib/aws/functions/cfg"  # TODO: use varaible instead
     . "${base_dir}/config.conf"
 
     properties=(
@@ -62,7 +60,3 @@ function list () {
 
     echo "${result}" | xsh /file/mark -p "^${pattern}$"  # highlight activated profile
 }
-
-list "$@"
-
-exit
