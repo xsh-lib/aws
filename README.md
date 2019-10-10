@@ -4,6 +4,10 @@ xsh Library - AWS.
 
 About xsh and its libraries, check out [xsh document](https://github.com/alexzhangs/xsh)
 
+## Status
+
+Currently this project is at version 0.x, and is unstable.
+
 ## Installation
 
 Assume [xsh](https://github.com/alexzhangs/xsh) is already installed at your local.
