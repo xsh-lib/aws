@@ -1,4 +1,4 @@
-# core
+# aws
 
 xsh Library - AWS.
 
