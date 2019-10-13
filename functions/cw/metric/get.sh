@@ -1,5 +1,3 @@
-#!/bin/bash -e
-
 #? Description:
 #?   Get CloudWatch metrics.
 #?
@@ -9,10 +7,9 @@
 #?     -m <METRIC_NAME> [...]
 #?     [-s STATISTICS]
 #?     [-d DIMENSION] [...]
-#?     [-b START_TIME]
+#?     [-b BEGIN_TIME]
 #?     [-e END_TIME]
 #?     [-p PERIOD]
-#?     [-l]
 #?
 #? Options:
 #?
@@ -22,7 +19,8 @@
 #?
 #?   -m <METRIC_NAME> [...]
 #?
-#?   Metric name. Multi -m is allowed.
+#?   Metric name.
+#?   Multiple -m is allowed.
 #?
 #?   [-s STATISTICS]
 #?
@@ -33,14 +31,14 @@
 #?   Dimension key value, format: Name=Value.
 #?   Multiple -d is allowed.
 #?
-#?   [-b START_TIME]
+#?   [-b BEGIN_TIME]
 #?
 #?   The time stamp to use for determining the first datapoint to return in UTC.
 #?
 #?   [-e END_TIME]
 #?
 #?   The time stamp to use for determining the last datapoint to return in UTC.
-#?   If both START_TIME and END_TIME is not given, curent timestamp will be
+#?   If both BEGIN_TIME and END_TIME is not given, curent timestamp will be
 #?   used for END_TIME.
 #?
 #?   [-p PERIOD]
@@ -48,71 +46,16 @@
 #?   The granularity, in seconds, of the returned datapoints. period must
 #?   be at least 60 seconds and must be a multiple of 60. Default is 3600.
 #?
-#?   [-l]
+#? Example:
+#?   # get the CPU average utilization in last 24 hours for EC2 instance i-xxxxxx.
+#?   $ @get -n EC2 -m CPUUtilization -d InstanceId=i-xxxxxx -p 86400
+#?   listing AWS/EC2 Average metric in 1440 minute(s) period between 2019-10-12 16:57:07 and 2019-10-13 16:57:07 (UTC).
+#?   
+#?   InstanceId=i-xxxxxx:
+#?   
+#?   CPUUtilization
+#?   DATAPOINTS	0.192940347879	2019-10-12T16:57:00Z	Percent
 #?
-#?   List all available Namespace, Metrics and Dimensions for current user.
-#?
-
-# TODO:
-. "$BASE_DIR/xdt.sh"
-
-function list_metrics () {
-    local out="$(aws cloudwatch list-metrics --output text)"
-
-    echo "Namespace and Metrics:"
-    echo "$out" | get_metrics | format_output 3
-    echo
-    echo "Namesapce and Dimentions:"
-    echo "$out" | get_dimensions | format_output 2
-}
-
-function get_metrics () {
-    cat | awk '/^METRICS/ {
-              split($3, a, "/");
-              print a[2], $2;
-          }' \
-        | sort -u
-}
-
-function get_dimensions () {
-    cat | awk '{
-              if ($1 == "METRICS") {
-                 split($3, a, "/");
-              };
-              if ($1 == "DIMENSIONS") {
-                 print a[2] "\t" $2 "=" $3
-              };
-          }' \
-        | sort -u
-}
-
-function format_output () {
-    local columns=${1:-1}
-
-    cat | awk -v column="$columns" '{
-              if (last != $1) {
-                 printf "\n" $1 ":\n";
-                 i=1;
-              };
-              if (i > column) {
-                 printf "\n";
-                 i=1;
-              };
-              printf "\t" $2;
-              i++;
-              last=$1;
-          }
-          END {printf "\n"}' \
-        | column -t \
-        | awk '{
-              if (match($0, ".+:$") > 0) {
-                 printf "\n\t" $0 "\n\n";
-              } else {
-                 printf "\t" $0 "\n";
-              }
-          }'
-}
-
 function get () {
     local OPTIND OPTARG opt
 
@@ -120,10 +63,10 @@ function get () {
     local stat='Average'
     local period=3600 # 60 minutes
 
-    local namespace start_time end_time
+    local namespace begin_time end_time
     declare -a metrics dimensions
 
-    while getopts n:m:s:d:b:e:p:l opt; do
+    while getopts n:m:s:d:b:e:p: opt; do
         case $opt in
             n)
                 namespace="AWS/$OPTARG"
@@ -138,17 +81,13 @@ function get () {
                 dimensions[${#dimensions[@]}]=$OPTARG
                 ;;
             b)
-                start_time=$OPTARG
+                begin_time=$OPTARG
                 ;;
             e)
                 end_time=$OPTARG
                 ;;
             p)
-                period=$OPTARG
-                ;;
-            l)
-                list_metrics
-                return
+                period=${OPTARG:?}
                 ;;
             *)
                 return 255
@@ -156,19 +95,25 @@ function get () {
         esac
     done
 
-    if [[ -z $start_time && -z $end_time ]]; then
-        end_time="$(TZ=UTC date '+%Y-%m-%d %H:%M:%S')"
+    if [[ -z $namespace || ${#metrics[@]} -eq 0 ]]; then
+        xsh log error "NAMESPACE and/or METRIC_NAME: parameters null or not set"
+        return 255
     fi
 
-    if [[ -z $start_time ]]; then
-        start_time="$(xdt.adjust -${period}S "${end_time:?}")"
+    if [[ -z $begin_time && -z $end_time ]]; then
+        end_time=$(TZ=UTC date '+%Y-%m-%d %H:%M:%S')
+    fi
+
+    if [[ -z $begin_time ]]; then
+        begin_time=$(xsh /date/adjust -${period}S "${end_time:?}")
     elif [[ -z $end_time ]]; then
-        end_time="$(xdt.adjust +${period}S "${start_time:?}")"
+        end_time=$(xsh /date/adjust +${period}S "${begin_time:?}")
     else
         :
     fi
 
-    printf "listing $namespace $stat metric in %s minute(s) period between %s and %s (UTC).\n" "$(($period / 60))" "$start_time" "$end_time"
+    printf "listing $namespace $stat metric in %s minute(s) period between %s and %s (UTC).\n" \
+           "$(($period / 60))" "$begin_time" "$end_time"
 
     local dimension_option metric
     for dimension in "${dimensions[@]:-empty}"; do
@@ -180,7 +125,7 @@ function get () {
         for metric in "${metrics[@]}"; do
             aws cloudwatch get-metric-statistics \
                 --metric-name "${metric:?}" \
-                --start-time "${start_time:?}" \
+                --start-time "${begin_time:?}" \
                 --end-time "${end_time:?}" \
                 --period "$period" \
                 --namespace "${namespace:?}" \
@@ -191,7 +136,3 @@ function get () {
         done
     done
 }
-
-get "$@"
-
-exit
