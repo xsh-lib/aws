@@ -72,13 +72,13 @@ function get () {
                 namespace="AWS/$OPTARG"
                 ;;
             m)
-                metrics[${#metrics[@]}]=$OPTARG
+                metrics+=( "$OPTARG" )
                 ;;
             s)
                 stat=$OPTARG
                 ;;
             d)
-                dimensions[${#dimensions[@]}]=$OPTARG
+                dimensions+=( "$OPTARG" )
                 ;;
             b)
                 begin_time=$OPTARG
