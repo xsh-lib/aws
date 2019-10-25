@@ -1,45 +1,43 @@
 #? Description:
 #?   Create support case.
 #?   AWS Premium Support Subscription is required to use this service.
+#?   This util is untested!!!
 #?
 #? Usage:
 #?   @create
 #?     -j <SUBJECT>
 #?     -b <BODY>
-#?     -s <SERVICE_CODE>
+#?     [-s <SERVICE_CODE>]
 #?     [-c <CATEGORY_CODE>]
 #?     [-l <LANGUAGE>]
 #?     [-t <ISSUE_TYPE>]
-#?
-#? Options:
-#?     -j <SUBJECT>
-#?     -b <BODY>
-#?     -s <SERVICE_CODE>
-#?     [-c <CATEGORY_CODE>]
-#?     [-l <LANGUAGE>]
-#?     [-t <ISSUE_TYPE>]
+#?     [-e <CC_EMAIL>] [...]
 #?
 #? Options:
 #?   -j <SUBJECT>           The title of the AWS Support case.
 #?   -b <BODY>              The communication body text when you create an AWS
 #?                          Support case.
-#?   -s <SERVICE_CODE>      The code for the AWS service returned by the call to
+#?   [-s <SERVICE_CODE>]    The code for the AWS service returned by the call to
 #?                          describe-services.
 #?   [-c <CATEGORY_CODE>]   The category of problem for the AWS Support case.
 #?   [-l <LANGUAGE>]        The ISO 639-1 code for the language in which AWS provides support.
 #?                          AWS Support currently supports English ("en") and Japanese ("ja").
-#?                          The default is English ("en").
 #?   [-t <ISSUE_TYPE>]      The type of issue for the case. You can specify either
 #?                          "customer-service" or "technical".
-#?                          The default is "technical"
+#?                          The default is "technical".
+#?   [-e <CC_EMAIL>]        Email addresses to cc to.
+#?                          Use multiple -e to specify multiple Email addresses.
+#?
+#? Output:
+#?   The AWS Support case ID requested or returned in the call.
 #?
 function create () {
     local OPTIND OPTARG opt
 
-    local subject body service_code category_code \
-          lang=en issue_type=technical
+    local subject body
+    local -a options
 
-    while getopts j:b:s:c:l:t: opt; do
+    while getopts j:b:s:c:l:t:e: opt; do
         case $opt in
             j)
                 subject=${OPTARG:?}
@@ -48,16 +46,19 @@ function create () {
                 body=${OPTARG:?}
                 ;;
             s)
-                service_code=${OPTARG:?}
+                options+=(--service-code "${OPTARG:?}")
                 ;;
             c)
-                category_code=${OPTARG:?}
+                options+=(--category-code "${OPTARG:?}")
                 ;;
             l)
-                lang=${OPTARG:?}
+                options+=(--language "${OPTARG:?}")
                 ;;
             t)
-                issue_type=${OPTARG:?}
+                options+=(--issue-type "${OPTARG:?}")
+                ;;
+            e)
+                options+=(--cc-email-addresses "${OPTARG:?}")
                 ;;
             *)
                 return 255
@@ -71,8 +72,6 @@ function create () {
         support create-case \
         --subject "${subject:?}" \
         --communication-body "${body:?}" \
-        --service-code "${service_code:?}" \
-        --category-code "$category_code" \
-        --language "${lang:?}" \
-        --issue-type "${issue_type:?}"
+        --output text
+        "${options[@]}" \
 }
