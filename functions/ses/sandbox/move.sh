@@ -53,7 +53,7 @@ function move () {
             printf "checking the support case status ... "
 
             local out
-            out=$(aws support describe-cases \
+            out=$(aws --region us-east-1 support describe-cases \
                       --case-id-list "$case_id" \
                       --include-resolved-cases)
 
