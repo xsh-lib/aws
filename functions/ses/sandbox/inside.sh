@@ -44,7 +44,7 @@ function inside () {
     local out max24hoursend
 
     # do not double quote ${options[@]}
-    out=$(aws ${options[@]} ses get-send-quota)
+    out=$(aws "${options[@]}" ses get-send-quota)
     max24hoursend=$(xsh /json/parser get "$out" Max24HourSend)
 
     test "$max24hoursend" == 200.0
