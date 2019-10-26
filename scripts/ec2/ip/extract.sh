@@ -55,7 +55,7 @@ function extract () {
     local -a hosts_query="Instances[?not_null(Tags[?Key=='Name'].Value|[0])!=''][$ip_attr,Tags[?Key=='Name'].Value|[0]]"
 
     local -a ssh_conf=~/.ssh/config
-    local -a ssh_tmpl="Host %s\nHostName %s\nUser ec2-user\nIdentityFile ~/.ssh/%s\nPort 22\n"
+    local -a ssh_tmpl="Host %s\n    HostName %s\n    User ec2-user\n    IdentityFile ~/.ssh/%s\n    Port 22\n"
     local -a ssh_query="Instances[?not_null(Tags[?Key=='Name'].Value|[0])!=''][KeyName,$ip_attr,Tags[?Key=='Name'].Value|[0]]"
 
     local name
@@ -63,6 +63,11 @@ function extract () {
     for name in conf tmpl query; do
         local $name=${store}_$name
     done
+
+    if [[ ! -w "${!conf}" ]]; then
+        xsh log error "${!conf}: the file is not writable by $(id -un)"
+        exit 255
+    fi
 
     local -a ips
     # list unterminated instances
@@ -93,13 +98,17 @@ function extract () {
             ;;
     esac
 
-    local full_tmpl
-    # generate full template according to the number of EC2 instance
-    full_tmpl=$(xsh /string/repeat/3 "${!tmpl}" "$count")
-
     local entries
-    # generate entries
-    entries=$(printf "$full_tmpl" "${ips[@]}")
+    if [[ $count -gt 0 ]]; then
+        local full_tmpl
+        # generate full template according to the number of EC2 instance
+        full_tmpl=$(xsh /string/repeat/3 "${!tmpl}" "$count")
+
+        # generate entries
+        entries=$(printf "$full_tmpl" "${ips[@]}")
+    else
+        return
+    fi
 
     local access_key
     access_key=$(aws configure get default.aws_access_key_id)
@@ -109,9 +118,10 @@ function extract () {
     fi
 
     local s1 s2
-    s1="## generated for ${access_key} ${region} BEGIN ##"
-    s2="## generated for ${access_key} ${region} =END= ##"
+    s1="## ---- BEGIN OF - ${access_key} - ${region} ----"
+    s2="## ------ END OF - ${access_key} - ${region} ----"
 
+    printf "%s" "$entries"
     # insert the entries at the end of file
     # remove existing entries if exists
     xsh /file/inject -c "$entries" \
@@ -124,3 +134,5 @@ function extract () {
 }
 
 extract "$@"
+
+exit
