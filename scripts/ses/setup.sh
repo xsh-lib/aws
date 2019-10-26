@@ -1,11 +1,34 @@
-#!/bin/bash
+#!/bin/bash -e
 
 #? Description:
 #?   Setup AWS SES service step by step, trying to automate the procedure
 #?   as much as possible.
 #?
 #? Usage:
-#?   @setup -d DOMAIN [-t EMAIL] [-u USERNAME]
+#?   @setup -d DOMAIN [-r REGION] [-t EMAIL] [-u USER] [-f] [-m]
+#?
+#? Options:
+#?   -d DOMAIN     Domain name for the SES service.
+#?
+#?   [-r REGION]   Setup SES in the given region.
+#?                   * us-east-1
+#?                   * us-west-2
+#?                   * eu-west-1
+#?                 Defalt is to use the region in your AWS CLI profile.
+#?
+#?   [-t EMAIL]    Send a test email after moving out of SES sandbox.
+#?
+#?   [-u USER]     Create an IAM user to access to SES SMTP service.
+#?
+#?   [-f]          Force delete the IAM user if already exists.
+#?
+#?   [-m]          Move the SES service out of the sandbox.
+#?
+#? Example:
+#?   $ @setup -d yourdomain.com -u iam_username -m
+#?
+#? Reference:
+#?   https://docs.aws.amazon.com/ses/latest/DeveloperGuide/quick-start.html
 #?
 
 VALID_REGIONS=(
@@ -14,10 +37,13 @@ VALID_REGIONS=(
     eu-west-1
 )
 
-while getopts d:t:u:h opt; do
+while getopts d:r:t:u:fm opt; do
     case $opt in
         d)
             domain=$OPTARG
+            ;;
+        r)
+            region=$OPTARG
             ;;
         t)
             email=$OPTARG
@@ -25,8 +51,14 @@ while getopts d:t:u:h opt; do
         u)
             username=$OPTARG
             ;;
-        h|*)
-            usage
+        f)
+            force=1
+            ;;
+        m)
+            move_out=1
+            ;;
+        *)
+            exit 255
             ;;
     esac
 done
@@ -36,147 +68,108 @@ if [[ -z $domain ]]; then
     exit 255
 fi
 
-region=$(aws configure get default.region)
-if ! printf '%s\n' "${VALID_REGIONS[@]}" | grep -q "$region"; then
+if [[ -z $region ]]; then
+    region=$(aws configure get default.region)
+fi
+
+if printf '%s\n' "${VALID_REGIONS[@]}" | grep -q "$region"; then
+    echo "setting up AWS SES service in the region: $region"
+else
     xsh log error "AWS SES is not available in the region: $region, please use one of following regions: ${VALID_REGIONS[*]}"
     exit 255
 fi
 
-printf "STEP 1: Verifying domain identity.\n\n"
+step=0
 
-aws ses verify-domain-identity --domain "$domain" >/dev/null
-iva_out=$(aws ses get-identity-verification-attributes --identities "$domain")
-iva_status=$(xsh /json/parser eval "$iva_out" '{JSON}["VerificationAttributes"]["'$domain'"]["VerificationStatus"]')
+step=$((step + 1))
+echo "$step. verifying domain identity."
+xsh aws/ses/domain-identity -r "$region" "$domain"
 
-if [[ $iva_status != Success ]]; then
-    iva_txt_value=$(xsh /json/parser eval "$iva_out" '{JSON}["VerificationAttributes"]["'$domain'"]["VerificationToken"]')
-    echo "Add below record to the domain $domain:"
-    echo "Record Type: TXT (Text)"
-    echo "TXT Name*: _amazonses.$domain"
-    echo "TXT Value: $iva_txt_value"
-    echo ""
-else
-    printf "Domain $domain is already verified.\n\n"
-fi
-
-aws ses verify-domain-dkim --domain "$domain" >/dev/null
-idva_out=$(aws ses get-identity-dkim-attributes --identities "$domain")
-idva_status=$(xsh /json/parser eval "$idva_out" '{JSON}["DkimAttributes"]["'$domain'"]["DkimVerificationStatus"]')
-
-if [[ $idva_status != Success ]]; then
-    idva_values[0]=$(xsh /json/parser eval "$idva_out" '{JSON}["DkimAttributes"]["'$domain'"]["DkimTokens"][0]')
-    idva_values[1]=$(xsh /json/parser eval "$idva_out" '{JSON}["DkimAttributes"]["'$domain'"]["DkimTokens"][1]')
-    idva_values[2]=$(xsh /json/parser eval "$idva_out" '{JSON}["DkimAttributes"]["'$domain'"]["DkimTokens"][2]')
-    echo "Add below records to the domain $domain:"
-    for v in "${idva_values[@]}"; do
-        echo "Record Type: CNAME"
-        echo "Name: $v._domainkey.$domain"
-        echo "Value: $v.dkim.amazonses.com"
-        echo ""
-    done
-else
-    printf "Domain $domain DKIM is already verified.\n\n"
-fi
-
-printf "STEP 2: Move out of SES sandbox.\n\n"
-
-echo "Go to below URL to create a support case to move your account out of Amazon SES sandbox:"
-echo "https://aws.amazon.com/ses/extendedaccessrequest/"
-echo "Here's the help document about how to create this case:"
-echo "http://docs.aws.amazon.com/ses/latest/DeveloperGuide/request-production-access.html"
-echo "If your account is still in the Amazon SES sandbox, you may only send to verified addresses or domains, or to email addresses associated with the Amazon SES Mailbox Simulator."
-echo ""
-read -n 1 -s -r -p "Press any key to continue"
-echo ""
-echo ""
-
-printf "STEP 3: Send a test email through SES.\n\n"
-
-if [[ -n $email ]]; then
-    if [[ $iva_status != Success ]]; then
-        echo "Before you are able to send email, domain $domain must be verified."
-        echo "Waiting for AWS SES to verify domain $domain, it may take hours."
-        echo "So have a coffee now, once verified, will continue."
-        ret=255
-        while [[ $ret != 0 ]]; do
-            printf "."
-            aws ses wait identity-exists --identities "$domain" >/dev/null
-            ret=$?
-        done
-
-        printf "\nDomain $domain has been verified by AWS SES.\n\n"
-    fi
-
-    aws ses send-email \
-        --from "no-reply@$domain" \
-        --to "$email" \
-        --subject "${0##*/} test Email" \
-        --text "This is a test Email sent through AWS SES." >/dev/null
-    echo "A test email has been sent to $email, please check the inbox."
-    read -n 1 -s -r -p "Press any key to continue"
-    echo ""
-    echo ""
-else
-    printf "skipped\n\n"
-fi
-
-printf "STEP 4: Create SMTP credential.\n\n"
+step=$((step + 1))
+echo "$step. verifying domain DKIM."
+xsh aws/ses/domain-dkim -r "$region" "$domain"
 
 if [[ -n $username ]]; then
-    aws iam get-user --user-name "$username" >/dev/null 2>&1
-    if [[ $? -ne 0 ]]; then
-        echo "Creating user $username."
-        aws iam create-user --user-name "$username" >/dev/null
-    else
-        echo "User "$username" already exists."
+    create_user=1
+
+    step=$((step + 1))
+    echo "$step. checking IAM user existence."
+    if xsh aws/iam/user/exist "$username"; then
+        if [[ $force -eq 1 ]]; then
+            step=$((step + 1))
+            echo "$step. deleting existing IAM user and all its belonging."
+            xsh aws/iam/user/delete -f "$username"
+        else
+            xsh log warning "$username: user already exists."
+            create_user=0
+        fi
     fi
 
-    echo "Set SES policy for user $username."
-    aws iam put-user-policy \
-        --user-name "$username" \
-        --policy-name AmazonSesSendingAccess \
-        --policy-document '{"Version": "2012-10-17", "Statement": [{ "Effect":"Allow", "Action":"ses:SendRawEmail", "Resource":"*"}]}'
-
-    keys=$(aws iam list-access-keys --user-name "$username")
-    found_key=$(xsh /json/parser eval "$keys" 'len({JSON}["AccessKeyMetadata"])')
-    if [[ $found_key -eq 0 ]]; then
-        echo "Creating access key for user $username."
-        key=$(aws iam create-access-key --user-name "$username")
-        access_key_id=$(xsh /json/parser get "$key" AccessKey.AccessKeyId)
-        secret_access_key=$(xsh /json/parser get "$key" AccessKey.SecretAccessKey)
-
-        message="SendRawEmail"
-        version_in_bytes='\x02';
-        signature_in_bytes=$(echo -n "$message" | openssl dgst -sha256 -hmac "$secret_access_key" -binary)
-        smtp_secret_access_key=$(echo -e -n "${version_in_bytes}${signature_in_bytes}" | base64)
-
-        echo "SMTP username: $access_key_id"
-        echo "SMTP password: $smtp_secret_access_key"
-    else
-        echo "Access key for user $username already exists."
+    if [[ $create_user -eq 1 ]]; then
+        step=$((step + 1))
+        echo "$step. creating IAM user."
+        xsh aws/iam/user/create "$username"
     fi
 
-    echo ""
-else
-    printf "skipped\n\n"
+    step=$((step + 1))
+    echo "$step. attaching SES policy to IAM user."
+    xsh aws/iam/user/policy/put \
+        -u "$username" \
+        -n AmazonSesSendingAccess \
+        -d '{"Version": "2012-10-17", "Statement": [{ "Effect":"Allow", "Action":"ses:SendRawEmail", "Resource":"*"}]}'
+
+    step=$((step + 1))
+    echo "$step. checking access key existence."
+    if xsh aws/iam/user/key/exist -u "$username"; then
+        xsh log warning "$username: the user already has access key."
+    else
+        step=$((step + 1))
+        echo "$step. creating access key for IAM user $username."
+        out=$(xsh aws/iam/user/key/create -u "$username" \
+                  -q '[AccessKey.AccessKeyId,AccessKey.SecretAccessKey]' \
+                  -o text)
+        if [[ -z $out ]]; then
+            xsh log error "failed to create access key for $username."
+            exit 255
+        fi
+        id=${out%%$'\t'*}
+        secret=${out#*$'\t'}
+    
+        step=$((step + 1))
+        echo "$step. sign the secret access key as SMTP credential."
+        smtp_secret=$(xsh aws/iam/user/key/sign "$secret")
+        if [[ -z $smtp_secret ]]; then
+            xsh log error "failed to sign the secret access key: $secret."
+            exit 255
+        fi
+
+        xsh log info "SMTP username: $id"
+        xsh log info "SMTP password: $smtp_secret"
+    fi
 fi
 
-printf "STEP 5: AWS SES service setup completed.\n\n"
+if [[ $move_out -eq 1 ]]; then
+    step=$((step + 1))
+    echo "$step. moving out of SES sandbox."
+    xsh aws/ses/sandbox/move -r "$region"
+fi
 
-printf "STEP 6: Setup sendmail to use AWS SES SMTP server.\n\n"
+if [[ -n $email ]]; then
+    step=$((step + 1))
+    echo "$step. sending test email through SES."
+    xsh aws/ses/send -r "$region" -d "$domain" -t "$email"
 
-printf "STEP 6.1: On EC2 instance\n\n"
-echo "Execute below command on EC2 instance:"
-echo "git clone https://github.com/alexzhangs/aws-ec2-ses"
-echo "sh aws-ec2-ses/install.sh"
-echo "aws-ec2-ses-setup.sh -d $domain -r $region -u ${access_key_id:SMTP_USERNAME} -p ${smtp_secret_access_key:SMTP_PASSWORD} -m PLAIN -t ${email:YOUR_EMAIL_ADDREESS}"
-echo ""
+    read -n 1 -s -r -p "press any key to continue"
+    printf '\n\n'
+fi
 
-printf "STEP 6.2: On MacOS\n\n"
-echo "Execute below command on MacOS:"
-echo "git clone https://github.com/alexzhangs/macos-aws-ses"
-echo "sh macos-aws-ses/install.sh"
-echo "macos-aws-ses-setup.sh -d $domain -r $region -u ${access_key_id:SMTP_USERNAME} -p ${smtp_secret_access_key:SMTP_PASSWORD} -t ${email:YOUR_EMAIL_ADDREESS}"
-echo ""
+echo "AWS SES service setup completed."
+echo
+echo "to setup unix sendmail to use AWS SES SMTP service, use below commands:"
+echo "for EC2 instance (Linux):"
+echo "xsh aws/ses/ec2/setup -d $domain -r $region -u ${id:-SMTP_USERNAME} -p ${smtp_secret:-SMTP_PASSWORD} -m PLAIN -t ${email:-YOUR_EMAIL_ADDREESS}"
+echo
+echo "for macOS:"
+echo "xsh aws/ses/macos/setup -d $domain -r $region -u ${id:-SMTP_USERNAME} -p ${smtp_secret:-SMTP_PASSWORD} -t ${email:-YOUR_EMAIL_ADDREESS}"
 
 exit
