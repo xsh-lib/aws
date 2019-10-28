@@ -121,7 +121,7 @@ function extract () {
     s1="## ---- BEGIN OF - ${access_key} - ${region} ----"
     s2="## ------ END OF - ${access_key} - ${region} ----"
 
-    printf "%s" "$entries"
+    printf "%s\n" "$entries"
     # insert the entries at the end of file
     # remove existing entries if exists
     xsh /file/inject -c "$entries" \
