@@ -36,7 +36,8 @@
 function send () {
     local OPTIND OPTARG opt
 
-    local region domain to from
+    local -a region_opt
+    local domain to from
 
     # set default
     local subject='@send test email'
@@ -45,7 +46,7 @@ function send () {
     while getopts r:d:t:f:s:b: opt; do
         case $opt in
             r)
-                region=$OPTARG
+                region_opt=(--region "${OPTARG:?}")
                 ;;
             d)
                 domain=$OPTARG
@@ -72,12 +73,7 @@ function send () {
         from=no-reply@${domain:?}
     fi
 
-    local -a options
-    if [[ -n $region ]]; then
-        options=(--region "$region")
-    fi
-
-    aws "${options[@]}" ses send-email \
+    aws "${region_opt[@]}" ses send-email \
         --from "${from:?}" \
         --to "${to:?}" \
         --subject "$subject" \

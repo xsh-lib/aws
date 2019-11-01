@@ -27,11 +27,11 @@ function domain-identity () {
 
     local OPTIND OPTARG opt
 
-    local region
+    local -a region_opt
     while getopts r: opt; do
         case $opt in
             r)
-                region=$OPTARG
+                region_opt=(--region "${OPTARG:?}")
                 ;;
             *)
                 return 255
@@ -41,20 +41,13 @@ function domain-identity () {
     shift $((OPTIND - 1))
     local domain=${1:?}
 
-    local -a options
-    if [[ -n $region ]]; then
-        options=(--region "$region")
-    fi
-
     printf "checking the verifying status of $domain ... "
 
-    # do not double quote ${options[@]}
-    aws "${options[@]}" ses verify-domain-identity --domain "$domain" >/dev/null
+    aws "${region_opt[@]}" ses verify-domain-identity --domain "$domain" >/dev/null
 
     local out status
 
-    # do not double quote ${options[@]}
-    out=$(aws "${options[@]}" ses get-identity-verification-attributes --identities "$domain")
+    out=$(aws "${region_opt[@]}" ses get-identity-verification-attributes --identities "$domain")
     status=$(xsh /json/parser eval "$out" '{JSON}["VerificationAttributes"]["'$domain'"]["VerificationStatus"]')
 
     local text="\
@@ -79,7 +72,7 @@ function domain-identity () {
         while [[ $ret -ne 0 ]]; do
             printf '.'
             # identity-exists: check every 3 seconds, exit after 20 failed checks
-            aws "${options[@]}" ses wait identity-exists --identities "$domain" >/dev/null 2>&1 && ret=$? || ret=$?
+            aws "${region_opt[@]}" ses wait identity-exists --identities "$domain" >/dev/null 2>&1 && ret=$? || ret=$?
         done
 
         printf "\ndomain $domain has been verified by AWS SES.\n"

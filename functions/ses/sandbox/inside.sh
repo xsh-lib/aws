@@ -24,11 +24,11 @@
 function inside () {
     local OPTIND OPTARG opt
 
-    local region
+    local -a region_opt
     while getopts r: opt; do
         case $opt in
             r)
-                region=$OPTARG
+                region_opt=(--region "${OPTARG:?}")
                 ;;
             *)
                 return 255
@@ -36,16 +36,11 @@ function inside () {
         esac
     done
  
-    local -a options
-    if [[ -n $region ]]; then
-        options=(--region "$region")
-    fi
+    local max24hoursend
 
-    local out max24hoursend
-
-    # do not double quote ${options[@]}
-    out=$(aws "${options[@]}" ses get-send-quota)
-    max24hoursend=$(xsh /json/parser get "$out" Max24HourSend)
+    max24hoursend=$(aws "${region_opt[@]}" \
+                        --query Max24HourSend --output text \
+                        ses get-send-quota)
 
     test "$max24hoursend" == 200.0
 }

@@ -26,11 +26,12 @@
 function domain-dkim () {
     local OPTIND OPTARG opt
 
-    local region
+    local -a region_lopt region_sopt
     while getopts r: opt; do
         case $opt in
             r)
-                region=$OPTARG
+                region_lopt=(--region "${OPTARG:?}")
+                region_sopt=(-r "${OPTARG:?}")
                 ;;
             *)
                 return 255
@@ -40,20 +41,13 @@ function domain-dkim () {
     shift $((OPTIND - 1))
     local domain=${1:?}
 
-    local -a options
-    if [[ -n $region ]]; then
-        options=(--region "$region")
-    fi
-
     printf "checking the DKIM verifying status of $domain ... "
 
-    # do not double quote ${options[@]}
-    aws ${options[@]} ses verify-domain-dkim --domain "$domain" >/dev/null
+    aws "${region_lopt[@]}" ses verify-domain-dkim --domain "$domain" >/dev/null
 
     local out status
 
-    # do not double quote ${options[@]}
-    out=$(aws ${options[@]} ses get-identity-dkim-attributes --identities "$domain")
+    out=$(aws "${region_lopt[@]}" ses get-identity-dkim-attributes --identities "$domain")
     status=$(xsh /json/parser eval "$out" '{JSON}["DkimAttributes"]["'$domain'"]["DkimVerificationStatus"]')
 
     local text="\
@@ -82,6 +76,6 @@ function domain-dkim () {
 
         read -n 1 -s -p "press any key to continue, CTRL-C to exit."
         printf '\n\n'
-        @domain-dkim -r "$region" "$domain"
+        @domain-dkim "${region_sopt[@]}" "$domain"
     fi
 }

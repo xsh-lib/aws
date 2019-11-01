@@ -67,11 +67,9 @@ function generate () {
             if aws --version >/dev/null 2>&1; then
                 if [[ -z $region ]]; then
                     # get region that bucket belongs to
-                    local json=$(aws s3api get-bucket-location --bucket "$bucket" 2>/dev/null)
-                    if [[ -n $json ]]; then
-                        region=$(xsh /json/parser get "$json" "LocationConstraint")
-                    fi
-
+                    region=$(aws --query LocationConstraint --output text \
+                                 s3api get-bucket-location \
+                                 --bucket "$bucket" 2>/dev/null)
                 fi
 
                 if [[ -z $region ]]; then

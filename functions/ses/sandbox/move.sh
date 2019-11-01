@@ -18,10 +18,12 @@ function move () {
     local OPTIND OPTARG opt
 
     local region
+    local -a region_opt
     while getopts r: opt; do
         case $opt in
             r)
                 region=$OPTARG
+                region_opt=(-r "${OPTARG:?}")
                 ;;
             *)
                 return 255
@@ -29,9 +31,13 @@ function move () {
         esac
     done
 
+    if [[ -z $region ]]; then
+        region=$(aws configure get default.region)
+    fi
+
     printf "checking if this account is inside SES sandbox ... "
 
-    if xsh aws/ses/sandbox/inside -r "$region"; then
+    if xsh aws/ses/sandbox/inside "${region_opt[@]}"; then
         # inside sandbox
         printf "[yes]\n" | xsh /file/mark
     else
@@ -52,13 +58,13 @@ function move () {
             printf "[yes]\n" | xsh /file/mark
             printf "checking the support case status ... "
 
-            local out
-            out=$(aws --region us-east-1 support describe-cases \
-                      --case-id-list "$case_id" \
-                      --include-resolved-cases)
-
             local status
-            status=(xsh /json/parser get "$out" '[0].status')
+            status=$(aws --region us-east-1 \
+                         --query '[].status' \
+                         support describe-cases \
+                         --case-id-list "$case_id" \
+                         --include-resolved-cases)
+
             printf "[%s]\n" "$status" | xsh /file/mark
 
             if [[ $status == Resolved ]]; then
@@ -116,5 +122,5 @@ function move () {
 
     read -n 1 -s -p "press any key to continue, CTRL-C to exit."
     printf '\n\n'
-    @move -r "$region"
+    @move "${region_opt[@]}"
 }
