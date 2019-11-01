@@ -17,8 +17,8 @@
 #?   EC2 instance identifier.
 #?
 function create () {
-    local OPTIND OPTARG opt
-    local -a region_opt instance_ids
+    declare OPTIND OPTARG opt
+    declare -a region_opt instance_ids
 
     while getopts r:i: opt; do
         case $opt in
@@ -34,7 +34,7 @@ function create () {
         esac
     done
 
-    local instance_id ts
+    declare instance_id ts
     for instance_id in "${instance_ids[@]}"; do
         ts=$(date '+%Y%m%d-%H%M')
 

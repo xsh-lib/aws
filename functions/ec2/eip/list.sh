@@ -27,10 +27,10 @@
 #?   The default is `json`.
 #?
 function list () {
-    local OPTIND OPTARG opt
+    declare OPTIND OPTARG opt
 
-    local -a region_opt output
-    local associated
+    declare -a region_opt output
+    declare associated
 
     while getopts aur:o: opt; do
         case $opt in
@@ -52,7 +52,7 @@ function list () {
         esac
     done
 
-    local query
+    declare query
     case $associated in
         1)
             # associated EIPs only

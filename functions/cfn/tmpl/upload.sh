@@ -28,10 +28,10 @@
 #?   The URI of the uploaded S3 object, in scheme `https`.
 #?
 function upload () {
-    local OPTIND OPTARG opt
+    declare OPTIND OPTARG opt
 
-    local -a region_opt
-    local bucket=aws-cfn-tmpl-upload-$RANDOM \
+    declare -a region_opt
+    declare bucket=aws-cfn-tmpl-upload-$RANDOM \
           key validate template
 
     while getopts r:b:k:vt: opt; do

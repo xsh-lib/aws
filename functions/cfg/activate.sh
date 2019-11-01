@@ -8,8 +8,8 @@
 #?   Activated profile.
 #?
 function activate () {
-    local profile=$1
-    local base_dir property n
+    declare profile=$1
+    declare base_dir property n
 
     base_dir=${XSH_HOME}/lib/aws/functions/cfg  # TODO: use varaible instead
     . "${base_dir}/config.conf"

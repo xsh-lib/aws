@@ -24,9 +24,9 @@
 #? @subshell
 #?
 function domain-dkim () {
-    local OPTIND OPTARG opt
+    declare OPTIND OPTARG opt
 
-    local -a region_lopt region_sopt
+    declare -a region_lopt region_sopt
     while getopts r: opt; do
         case $opt in
             r)
@@ -39,18 +39,18 @@ function domain-dkim () {
         esac
     done
     shift $((OPTIND - 1))
-    local domain=${1:?}
+    declare domain=${1:?}
 
     printf "checking the DKIM verifying status of $domain ... "
 
     aws "${region_lopt[@]}" ses verify-domain-dkim --domain "$domain" >/dev/null
 
-    local out status
+    declare out status
 
     out=$(aws "${region_lopt[@]}" ses get-identity-dkim-attributes --identities "$domain")
     status=$(xsh /json/parser eval "$out" '{JSON}["DkimAttributes"]["'$domain'"]["DkimVerificationStatus"]')
 
-    local text="\
+    declare text="\
     * Record Type: CNAME
     * Name: %s._domainkey.%s
     * Value: %s.dkim.amazonses.com\n"
@@ -61,13 +61,13 @@ function domain-dkim () {
         printf '[%s]\n' no | xsh /file/mark
         printf "add below DNS record to the domain:\n\n"
 
-        local -a tokens
-        local i
+        declare -a tokens
+        declare i
         for i in {0..2}; do
             tokens[$i]=$(xsh /json/parser eval "$out" '{JSON}["DkimAttributes"]["'$domain'"]["DkimTokens"]['$i']')
         done
 
-        local token
+        declare token
         for token in "${tokens[@]}"; do
             printf "$text\n" "$token" "$domain" "$token"
         done

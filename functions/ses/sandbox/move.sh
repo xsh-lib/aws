@@ -15,10 +15,10 @@
 #? @subshell
 #?
 function move () {
-    local OPTIND OPTARG opt
+    declare OPTIND OPTARG opt
 
-    local region
-    local -a region_opt
+    declare region
+    declare -a region_opt
     while getopts r: opt; do
         case $opt in
             r)
@@ -58,7 +58,7 @@ function move () {
             printf "[yes]\n" | xsh /file/mark
             printf "checking the support case status ... "
 
-            local status
+            declare status
             status=$(aws --region us-east-1 \
                          --query '[].status' \
                          support describe-cases \
@@ -77,7 +77,7 @@ function move () {
             printf "[no]\n" | xsh /file/mark
 
             if xsh /io/confirm -m 'shall I create a support case for you?'; then
-                local -a body
+                declare -a body
                 body+=("Limit increase request 1")
                 body+=("Service: SES Sending Limits")
                 body+=("Region: $region")
@@ -96,7 +96,7 @@ function move () {
                 body+=("I only send to recipients who have specifically requested my mail: Yes")
                 body+=("I have a process to handle bounces and complaints: Yes")
 
-                local case_id
+                declare case_id
                 case_id=$(xsh aws/spt/create \
                     -j "Limit Increase: SES Sending Limits" \
                     -b "$(printf '%s\n' "${body[@]}")" \
@@ -109,7 +109,7 @@ function move () {
         # not callable
         printf "[no]\n" | xsh /file/mark
 
-        local -a msg
+        declare -a msg
         msg+=("go to below URL to create a support case to move your account out of AWS SES sandbox:")
         msg+=("  * https://aws.amazon.com/ses/extendedaccessrequest/")
         msg+=("here's the help document about how to create this case:")

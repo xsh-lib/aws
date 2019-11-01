@@ -60,17 +60,17 @@
 #?
 function parser () {
     # get the last parameter
-    local uri=${@:(-1)}
+    declare uri=${@:(-1)}
 
     #? mybucket.s3-ap-northeast-1.amazsonaws.com
     #? mybucket.s3.cn-north-1.amazsonaws.com.cn
-    local REGEX_HOST='^([a-z0-9.-]+)(\.([^-./]+[-.]([a-zA-Z]+-[a-zA-Z-]+-[0-9])))(\.[^/]+)'
+    declare REGEX_HOST='^([a-z0-9.-]+)(\.([^-./]+[-.]([a-zA-Z]+-[a-zA-Z-]+-[0-9])))(\.[^/]+)'
     #?                 ↑            ↑  ↑           ↑                             ↑
     #?                 1 bucket     |  |           4 region                      5 .amazonaws.com[.cn]
     #?                              |  3 s3<-|.>region
     #?                              2 .s3<-|.>region
 
-    local OPTIND OPTARG opt
+    declare OPTIND OPTARG opt
 
     while getopts sahprbk opt; do
         case $opt in
@@ -78,7 +78,7 @@ function parser () {
                 xsh /uri/parser -$opt "$uri"
                 ;;
             r|b)
-                local scheme host
+                declare scheme host
                 scheme=$(xsh /uri/parser -s "$uri" | xsh /string/pipe/lower)
                 host=$(xsh /uri/parser -h "$uri")
 

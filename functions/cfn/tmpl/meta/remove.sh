@@ -17,9 +17,9 @@
 #?   {"foo": "bar"}
 #?
 function remove () {
-    local OPTIND OPTARG opt
+    declare OPTIND OPTARG opt
 
-    local template
+    declare template
     while getopts t: opt; do
         case $opt in
             t)

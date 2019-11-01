@@ -10,8 +10,8 @@
 function get () {
 
     function __get () {
-        local profile=$1
-        local property varname
+        declare profile=$1
+        declare property varname
 
         # output profile name as first field
         varname=${AWS_CFG_CONFIG_ENV_PREFIX}SECTIONS_${profile}
@@ -35,8 +35,8 @@ function get () {
         printf "\n"
     }
 
-    local name
-    local profile varname base_dir
+    declare name
+    declare profile varname base_dir
 
     name=$1
 

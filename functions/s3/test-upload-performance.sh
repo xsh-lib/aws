@@ -9,15 +9,15 @@
 #?            If no dir specified, will upload all directories under current path.
 #?
 function test-upload-performance () {
-    local dirs=(
+    declare dirs=(
         $(find . -depth 1 -type d -name "$1" \
               | sort -n)
     )
 
-    local tmp_s3_bucket="s3://test-upload-$RANDOM"
+    declare tmp_s3_bucket="s3://test-upload-$RANDOM"
     aws s3 mb "$tmp_s3_bucket"
 
-    local dir count size
+    declare dir count size
     for dir in "${dirs[@]}"; do
         count=$(ls -1 "$dir" | wc -l | tr -d ' ')
         size=$(du -sh "$dir" | awk '{print $1}')

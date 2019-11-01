@@ -42,8 +42,8 @@
 #?   The default is `json`.
 #?
 function desc () {
-    local OPTIND OPTARG opt
-    local -a filters query output
+    declare OPTIND OPTARG opt
+    declare -a filters query output
 
     while getopts r:s:l:f:q:o: opt; do
         case $opt in

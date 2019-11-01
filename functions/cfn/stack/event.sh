@@ -19,10 +19,10 @@
 #?   The name or unique stack ID of the stack.
 #?
 function event () {
-    local OPTIND OPTARG opt
+    declare OPTIND OPTARG opt
 
-    local -a region_opt
-    local error stack_name
+    declare -a region_opt
+    declare error stack_name
 
     while getopts r:es: opt; do
         case $opt in
@@ -46,7 +46,7 @@ function event () {
         return 255
     fi
 
-    local -r error_match_options=( -B1 -A7 '(CREATE_FAILED|UPDATE_FAILED)' )
+    declare -r error_match_options=( -B1 -A7 '(CREATE_FAILED|UPDATE_FAILED)' )
 
     if [[ $error -eq 1 ]]; then
         aws "${region_opt[@]}" cloudformation describe-stack-events --stack-name "$stack_name" \

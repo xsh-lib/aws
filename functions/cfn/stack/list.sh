@@ -11,7 +11,7 @@
 #?   Defalt is to use the region in your AWS CLI profile.
 #?
 function list () {
-    local OPTIND OPTARG opt
+    declare OPTIND OPTARG opt
 
     declare -a region_opt
     while getopts r: opt; do

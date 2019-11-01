@@ -74,14 +74,14 @@
 #?   DATAPOINTS	0.192940347879	2019-10-12T16:57:00Z	Percent
 #?
 function get () {
-    local OPTIND OPTARG opt
+    declare OPTIND OPTARG opt
 
     # set default
-    local stat='Average'
-    local period=3600 # 60 minutes
+    declare stat='Average'
+    declare period=3600 # 60 minutes
 
-    local namespace begin_time end_time
-    local -a metrics dimensions region_opt query output
+    declare namespace begin_time end_time
+    declare -a metrics dimensions region_opt query output
 
     while getopts n:m:s:d:b:e:p:r:q:o: opt; do
         case $opt in
@@ -143,7 +143,7 @@ function get () {
     printf "listing $namespace $stat metric in %s minute(s) period between %s and %s (UTC).\n" \
            "$(($period / 60))" "$begin_time" "$end_time"
 
-    local dimension_option metric
+    declare dimension_option metric
     for dimension in "${dimensions[@]:-empty}"; do
         if [[ $dimension != 'empty' ]]; then
             dimension_option="--dimensions Name=${dimension%%=*},Value=${dimension##*=}"

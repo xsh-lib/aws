@@ -5,8 +5,8 @@
 #?   List of profiles with properties.
 #?
 function list () {
-    local result pattern
-    local i sep str properties property sensitive base_dir
+    declare result pattern
+    declare i sep str properties property sensitive base_dir
 
     base_dir=${XSH_HOME}/lib/aws/functions/cfg  # TODO: use varaible instead
     . "${base_dir}/config.conf"

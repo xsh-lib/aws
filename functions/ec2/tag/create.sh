@@ -27,9 +27,9 @@
 #?   Tag value.
 #?
 function create () {
-    local OPTIND OPTARG opt
-    local -a region_opt
-    local resource_id tag value
+    declare OPTIND OPTARG opt
+    declare -a region_opt
+    declare resource_id tag value
 
     while getopts r:i:t:v: opt; do
         case $opt in

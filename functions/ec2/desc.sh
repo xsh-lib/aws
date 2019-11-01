@@ -67,8 +67,8 @@
 #?   ]
 #?
 function desc () {
-    local OPTIND OPTARG opt
-    local -a instance_ids region_opt filters query output
+    declare OPTIND OPTARG opt
+    declare -a instance_ids region_opt filters query output
 
     while getopts i:r:f:q:o: opt; do
         case $opt in

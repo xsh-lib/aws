@@ -8,9 +8,9 @@
 #?   [-f]   Force to delete all attached user policies and access key.
 #?
 function delete () {
-    local OPTIND OPTARG opt
+    declare OPTIND OPTARG opt
 
-    local force
+    declare force
     while getopts f opt; do
         case $opt in
             f)

@@ -22,9 +22,9 @@
 #?   If omitted, will show current status for the given instance.
 #?
 function access () {
-    local OPTIND OPTARG opt
-    local -a region_opt
-    local instance_id status
+    declare OPTIND OPTARG opt
+    declare -a region_opt
+    declare instance_id status
 
     while getopts r:i:s: opt; do
         case $opt in

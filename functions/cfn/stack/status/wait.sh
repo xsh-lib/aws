@@ -36,10 +36,10 @@
 #? @subshell
 #?
 function wait () {
-    local OPTIND OPTARG opt
+    declare OPTIND OPTARG opt
 
-    local -a region_opt
-    local target_status timeout=1200 interval=30 stack_name
+    declare -a region_opt
+    declare target_status timeout=1200 interval=30 stack_name
 
     while getopts r:w:i:S:s: opt; do
         case $opt in
@@ -72,10 +72,10 @@ function wait () {
     printf "expecting status: %s - timeout: %s seconds - interval: %s seconds.\n" \
            "$target_status" "$timeout" "$interval"
 
-    local timeout_epoch
+    declare timeout_epoch
     timeout_epoch=$(($(date +%s) + timeout))
 
-    local status left_epoch
+    declare status left_epoch
     while [[ 1 ]]; do
         status=$(xsh aws/cfn/stack/status/get "${region_opt[@]}" -s "$stack_name")
         printf "%s: %s ..." "$(date '+%F %T')" "${status:-NULL}"

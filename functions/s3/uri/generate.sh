@@ -30,10 +30,10 @@
 #?   * s3://BUCKET[/<KEY>]
 #?
 function generate () {
-    local OPTIND OPTARG opt
+    declare OPTIND OPTARG opt
 
     # set default
-    local scheme=https \
+    declare scheme=https \
           region bucket key
 
     while getopts s:r:b:k: opt; do
@@ -53,7 +53,7 @@ function generate () {
         esac
     done
 
-    local uri
+    declare uri
 
     case $scheme in
         s3)
@@ -84,8 +84,8 @@ function generate () {
             fi
 
             # set default
-            local delimiter='-'
-            local domain_suffix=''
+            declare delimiter='-'
+            declare domain_suffix=''
 
             # special logic for special region CN-*
             if [[ ${region%%-*} == 'cn' ]]; then

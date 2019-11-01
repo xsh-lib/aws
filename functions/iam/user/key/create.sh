@@ -31,9 +31,9 @@
 #?   AKIATJUQGF6OAGD4YK4O	TSLZk1KrPpDlYLCFRijTHY5uIyezn3FDRuUZGmNl
 #?
 function create () {
-    local OPTIND OPTARG opt
+    declare OPTIND OPTARG opt
 
-    local -a options query output
+    declare -a options query output
     while getopts u:q:o: opt; do
         case $opt in
             u)

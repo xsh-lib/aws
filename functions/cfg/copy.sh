@@ -10,7 +10,7 @@
 #?   New profile.
 #?
 function copy () {
-    local source target region
+    declare source target region
 
     source=$1
     target=$2

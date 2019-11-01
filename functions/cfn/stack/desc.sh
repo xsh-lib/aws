@@ -30,9 +30,9 @@
 #?   The default is `json`.
 #?
 function desc () {
-    local OPTIND OPTARG opt
+    declare OPTIND OPTARG opt
 
-    local -a region_opt stack_name query output
+    declare -a region_opt stack_name query output
 
     while getopts r:s:q:o: opt; do
         case $opt in

@@ -27,9 +27,9 @@
 #?   The private key created.
 #?
 function create () {
-    local OPTIND OPTARG opt
-    local -a region_opt
-    local file mode
+    declare OPTIND OPTARG opt
+    declare -a region_opt
+    declare file mode
 
     while getopts r:f:m: opt; do
         case $opt in
@@ -49,7 +49,7 @@ function create () {
     done
     shift $((OPTIND - 1))
 
-    local key
+    declare key
     key=$(aws "${region_opt[@]}" --query "KeyMaterial" --output text \
                      ec2 create-key-pair --key-name "${1:?}")
     printf "%s\n" "$key"

@@ -19,9 +19,9 @@
 #?     0: Not created
 #?
 function create () {
-    local OPTIND OPTARG opt
+    declare OPTIND OPTARG opt
 
-    local -a region_opt
+    declare -a region_opt
     while getopts r: opt; do
         case $opt in
             r)
@@ -33,7 +33,7 @@ function create () {
         esac
     done
     shift $((OPTIND - 1))
-    local name=${1:?}
+    declare name=${1:?}
 
     XSH_S3_BUCKET_CREATED=0
 

@@ -25,9 +25,9 @@
 #?
 function domain-identity () {
 
-    local OPTIND OPTARG opt
+    declare OPTIND OPTARG opt
 
-    local -a region_opt
+    declare -a region_opt
     while getopts r: opt; do
         case $opt in
             r)
@@ -39,18 +39,18 @@ function domain-identity () {
         esac
     done
     shift $((OPTIND - 1))
-    local domain=${1:?}
+    declare domain=${1:?}
 
     printf "checking the verifying status of $domain ... "
 
     aws "${region_opt[@]}" ses verify-domain-identity --domain "$domain" >/dev/null
 
-    local out status
+    declare out status
 
     out=$(aws "${region_opt[@]}" ses get-identity-verification-attributes --identities "$domain")
     status=$(xsh /json/parser eval "$out" '{JSON}["VerificationAttributes"]["'$domain'"]["VerificationStatus"]')
 
-    local text="\
+    declare text="\
     * Record Type: TXT (Text)
     * TXT Name*: _amazonses.%s
     * TXT Value: %s\n"
@@ -61,14 +61,14 @@ function domain-identity () {
         printf '[%s]\n' no | xsh /file/mark
         printf "add below DNS record to the domain:\n\n"
 
-        local txt_value
+        declare txt_value
         txt_value=$(xsh /json/parser eval "$out" '{JSON}["VerificationAttributes"]["'$domain'"]["VerificationToken"]')
         printf "$text\n" "$domain" "$txt_value"
 
         printf "then grab some coffee, it takes time for the DNS to take effect across the internet.\n"
         printf "please wait "
 
-        local ret=1
+        declare ret=1
         while [[ $ret -ne 0 ]]; do
             printf '.'
             # identity-exists: check every 3 seconds, exit after 20 failed checks

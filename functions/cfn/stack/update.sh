@@ -68,10 +68,10 @@
 #?   `ParameterKey=KEY,ParameterValue=VALUE ...`
 #?
 function update () {
-    local OPTIND OPTARG opt
+    declare OPTIND OPTARG opt
 
-    local -a region_opt options
-    local template reuse update stack_policy stack_policy_during_update stack_name
+    declare -a region_opt options
+    declare template reuse update stack_policy stack_policy_during_update stack_name
 
     while getopts r:s:t:TSDp:P:o: opt; do
         case $opt in
@@ -134,7 +134,7 @@ function update () {
         options+=( --use-previous-template )
     fi
 
-    local name
+    declare name
     for name in template stack_policy stack_policy_during_update; do
         if [[ -n ${!name} ]]; then
             case $(xsh /uri/parser -s "${!name}" | xsh /string/lower) in

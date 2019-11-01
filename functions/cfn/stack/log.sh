@@ -12,10 +12,10 @@
 #?   -l LOGICAL_ID   Logical identifier of EC2 instance in the stack.
 #?
 function log () {
-    local OPTIND OPTARG opt
+    declare OPTIND OPTARG opt
 
-    local -a region_opt
-    local wait stack_name logical_id
+    declare -a region_opt
+    declare wait stack_name logical_id
 
     while getopts r:ws:l: opt; do
         case $opt in
@@ -37,7 +37,7 @@ function log () {
         esac
     done
 
-    local physical_id
+    declare physical_id
     physical_id=$(xsh aws/cfn/stack/resource/desc \
                       "${region_opt[@]}" \
                       -q StackResourceDetail.PhysicalResourceId \

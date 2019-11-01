@@ -11,9 +11,9 @@
 #?   URI           S3 object URI to translate.
 #?
 function translate () {
-    local OPTIND OPTARG opt
+    declare OPTIND OPTARG opt
 
-    local scheme
+    declare scheme
 
     while getopts s: opt; do
         case $opt in
@@ -26,14 +26,14 @@ function translate () {
         esac
     done
     shift $((OPTIND -1))
-    local uri=${1:?}
+    declare uri=${1:?}
 
     if [[ ${scheme:?} == $(xsh /uri/parser -s "$uri" | xsh /string/pipe/lower) ]]; then
         echo "$uri"
         return
     fi
 
-    local bucket key region
+    declare bucket key region
     bucket=$(xsh aws/s3/uri/parser -b "$uri")
     key=$(xsh aws/s3/uri/parser -k "$uri")
     region=$(xsh aws/s3/uri/parser -r "$uri")

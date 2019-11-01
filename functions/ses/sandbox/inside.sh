@@ -22,9 +22,9 @@
 #? @subshell
 #?
 function inside () {
-    local OPTIND OPTARG opt
+    declare OPTIND OPTARG opt
 
-    local -a region_opt
+    declare -a region_opt
     while getopts r: opt; do
         case $opt in
             r)
@@ -36,7 +36,7 @@ function inside () {
         esac
     done
  
-    local max24hoursend
+    declare max24hoursend
 
     max24hoursend=$(aws "${region_opt[@]}" \
                         --query Max24HourSend --output text \

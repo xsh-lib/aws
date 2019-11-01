@@ -18,9 +18,9 @@
 #?   If not specified, all inline policies for the user are deleted.
 #?
 function delete () {
-    local OPTIND OPTARG opt
+    declare OPTIND OPTARG opt
 
-    local -a options policy_names
+    declare -a options policy_names
     while getopts u:n: opt; do
         case $opt in
             u)
@@ -42,7 +42,7 @@ function delete () {
                              iam list-user-policies "${options[@]}") )
     fi
 
-    local name
+    declare name
     for name in "${policy_names[@]}"; do
         xsh log info "$name: deleting policy."
         aws iam delete-user-policy "${options[@]}" --policy-name "$name"

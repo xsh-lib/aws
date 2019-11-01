@@ -15,10 +15,10 @@
 #?   The name or unique stack ID of the stack that is deleting.
 #?
 function delete () {
-    local OPTIND OPTARG opt
+    declare OPTIND OPTARG opt
 
-    local -a region_opt
-    local stack_name
+    declare -a region_opt
+    declare stack_name
 
     while getopts r:s: opt; do
         case $opt in

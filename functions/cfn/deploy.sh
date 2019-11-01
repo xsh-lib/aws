@@ -85,7 +85,7 @@ function deploy () {
     function __get_stack_name__ () {
 
         function __suffix_stack_name__ () {
-            local name=${1:?}
+            declare name=${1:?}
 
             if [[ -n $ENVIRONMENT ]]; then
                 name=$name-$ENVIRONMENT
@@ -116,15 +116,15 @@ function deploy () {
 
     #? upload the template to the bucket with a default key
     function __upload_template__ () {
-        local bucket=${1:?}
-        local key=${2:?}
-        local template=${3:?}
-        local -a region_opt
+        declare bucket=${1:?}
+        declare key=${2:?}
+        declare template=${3:?}
+        declare -a region_opt
         if [[ -n $4 ]]; then
             region_opt=(-r "$4")
         fi
 
-        local uri
+        declare uri
 
         case $(xsh /uri/parser -s "$template" | xsh /string/lower) in
             http|https)
@@ -151,9 +151,9 @@ function deploy () {
 
 
     # main
-    local OPTIND OPTARG opt
+    declare OPTIND OPTARG opt
 
-    local region template config dir update stack_name
+    declare region template config dir update stack_name
     declare -a region_opt options pass_options
 
     while getopts r:t:c:p:P:C:DSs:o: opt; do
@@ -212,9 +212,9 @@ function deploy () {
     #   OPTIONS
     #   DISABLE_ROLLBACK
     #   DELETE
-    local name
+    declare name
     for name in "${XSH_AWS_CFN__CFG_PROPERTY_NAMES[@]}"; do
-        local $name
+        declare $name
     done
 
     # config
@@ -241,16 +241,16 @@ function deploy () {
     OPTIONS+=( "NSLowerCase=$(xsh /string/lower "$stack_name")" )
 
     # bucket name
-    local bucket_name
+    declare bucket_name
     bucket_name=$(__get_bucket_name__ "$stack_name")
 
     # the prefix of s3 object key for template
-    local prekey
+    declare prekey
     prekey=$(date +%Y%m%d-%H%M%S)
 
     # upload template
     xsh log info "uploading template: $template"
-    local uri
+    declare uri
     uri=$(__upload_template__ \
               "$bucket_name" \
               "${prekey:?}/$(basename "$template")" \
@@ -275,7 +275,7 @@ function deploy () {
         fi
     fi
 
-    local item depended_uri key value
+    declare item depended_uri key value
     for item in "${DEPENDS[@]}"; do
         key=${item%%=*}
         value=${item#*=}
@@ -308,7 +308,7 @@ function deploy () {
         pass_options+=( -o "$item" )
     done
 
-    local ret
+    declare ret
 
     # create/update stack
     case $update in

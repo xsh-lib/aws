@@ -5,7 +5,7 @@
 #?   @echo
 #?
 function echo () {
-    local name
+    declare name
 
     for name in "${XSH_AWS_CFN__CFG_PROPERTY_NAMES[@]}"; do
         if xsh /array/is-array "${name}"; then

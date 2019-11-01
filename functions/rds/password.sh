@@ -19,9 +19,9 @@
 #?   New password.
 #?
 function password () {
-    local OPTIND OPTARG opt
-    local -a region_opt
-    local instance_id password
+    declare OPTIND OPTARG opt
+    declare -a region_opt
+    declare instance_id password
 
     while getopts r:i:p: opt; do
         case $opt in

@@ -20,9 +20,9 @@
 #?   $ @validate -t https://mybucket.s3-ap-northeast-1.awsamazon.com/template.json
 #?
 function validate () {
-    local OPTIND OPTARG opt
+    declare OPTIND OPTARG opt
 
-    local template
+    declare template
     while getopts t: opt; do
         case $opt in
             t)
@@ -39,7 +39,7 @@ function validate () {
         return 255
     fi
 
-    local scheme
+    declare scheme
     scheme=$(xsh /uri/parser -s "$template" | xsh /string/pipe/lower)
 
     case $scheme in

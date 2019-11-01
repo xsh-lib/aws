@@ -9,7 +9,7 @@
 #?   1: no
 #?
 function exist () {
-    local query
+    declare query
     if [[ -n $1 ]]; then
         query="length(Users[?UserName=='$1'])"
     else

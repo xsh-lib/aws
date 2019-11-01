@@ -21,9 +21,9 @@
 #? @subshell
 #?
 function create () {
-    local OPTIND OPTARG opt
-    local -a region_sopt region_lopt
-    local volume_id
+    declare OPTIND OPTARG opt
+    declare -a region_sopt region_lopt
+    declare volume_id
 
     while getopts r:i: opt; do
         case $opt in
@@ -40,7 +40,7 @@ function create () {
         esac
     done
 
-    local snapshot_id
+    declare snapshot_id
 
     # creating snapshot
     printf "creating snapshot for volume: $volume_id ..."
@@ -52,11 +52,11 @@ function create () {
     printf " $snapshot_id ... [ok]\n"
 
     # get the tag `Name` for volume
-    local volume_tag
+    declare volume_tag
     volume_tag=$(xsh aws/ec2/tag/get "${region_sopt[@]}" -i "$volume_id" -t Name)
 
     # get instance id
-    local instance_id
+    declare instance_id
     instance_id=$(
         aws "${region_lopt[@]}" \
             --query "Volumes[].Attachments[].InstanceId" \
@@ -64,11 +64,11 @@ function create () {
             ec2 describe-volumes --volume-ids "$volume_id")
 
     # get the tag `Name` for instance
-    local instance_tag
+    declare instance_tag
     instance_tag=$(xsh aws/ec2/tag/get "${region_sopt[@]}" -i "$instance_id" -t Name)
 
     # tag the snapshot
-    local ts snapshot_tag
+    declare ts snapshot_tag
     ts=$(date '+%Y%m%d-%H%M')
     snapshot_tag=${volume_tag:-${instance_tag:-snapshot}}-$ts
 

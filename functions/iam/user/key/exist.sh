@@ -26,9 +26,9 @@
 #?   1: no
 #?
 function exist () {
-    local OPTIND OPTARG opt
+    declare OPTIND OPTARG opt
 
-    local -a options query
+    declare -a options query
     while getopts u:i: opt; do
         case $opt in
             u)

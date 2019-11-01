@@ -23,9 +23,9 @@
 #?   If not specified, all access keys for the user are deleted.
 #?
 function delete () {
-    local OPTIND OPTARG opt
+    declare OPTIND OPTARG opt
 
-    local -a options access_key_ids
+    declare -a options access_key_ids
     while getopts u:i: opt; do
         case $opt in
             u)
@@ -47,7 +47,7 @@ function delete () {
                                iam list-access-keys "${options[@]}") )
     fi
 
-    local id
+    declare id
     for id in "${access_key_ids[@]}"; do
         xsh log info "$id: deleting access key."
         aws iam delete-access-key "${options[@]}" --access-key-id "$id"

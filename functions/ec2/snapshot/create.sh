@@ -22,8 +22,8 @@
 #?   EC2 instance identifier.
 #?
 function create () {
-    local OPTIND OPTARG opt
-    local -a region_opt instance_names instance_ids
+    declare OPTIND OPTARG opt
+    declare -a region_opt instance_names instance_ids
 
     while getopts r:n:i: opt; do
         case $opt in
@@ -42,11 +42,11 @@ function create () {
         esac
     done
 
-    local -a volume_ids
+    declare -a volume_ids
 
     # by tag Names
     if [[ ${#instance_names[@]} -gt 0 ]]; then
-        local csv_names
+        declare csv_names
         csv_names=$(IFS=,; echo "${instance_names[*]}")
 
         # collect volume
@@ -73,7 +73,7 @@ function create () {
         )
     fi
 
-    local volume_id
+    declare volume_id
     for volume_id in "${volume_ids[@]}"; do
         # create snapshot
         xsh aws/ec2/volume/snapshot/create "${region_opt[@]}" -i "$volume_id"

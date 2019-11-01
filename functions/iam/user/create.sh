@@ -23,8 +23,8 @@
 #?   IAM username.
 #?
 function create () {
-    local OPTIND OPTARG opt
-    local -a query output
+    declare OPTIND OPTARG opt
+    declare -a query output
 
     while getopts q:o: opt; do
         case $opt in

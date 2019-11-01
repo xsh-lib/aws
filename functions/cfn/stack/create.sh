@@ -43,10 +43,10 @@
 #?   This option is past through to `create-stack --parameters`.
 #?
 function create () {
-    local OPTIND OPTARG opt
+    declare OPTIND OPTARG opt
 
-    local -a region_opt options pass_options
-    local stack_name stack_policy template
+    declare -a region_opt options pass_options
+    declare stack_name stack_policy template
 
     while getopts r:s:t:p:w:Ro: opt; do
         case $opt in
@@ -101,7 +101,7 @@ function create () {
         "${pass_options[@]}"
     )
 
-    local name
+    declare name
     for name in template stack_policy; do
         if [[ -n ${!name} ]]; then
             case $(xsh /uri/parser -s "${!name}" | xsh /string/pipe/lower) in

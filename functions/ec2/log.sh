@@ -21,9 +21,9 @@
 #?   EC2 instance identifier.
 #?
 function log () {
-    local OPTIND OPTARG opt
-    local -a region_opt instance_ids
-    local wait
+    declare OPTIND OPTARG opt
+    declare -a region_opt instance_ids
+    declare wait
 
     while getopts r:wi: opt; do
         case $opt in
@@ -42,7 +42,7 @@ function log () {
         esac
     done
 
-    local inst_id
+    declare inst_id
 
     for inst_id in "${instance_ids[@]}"; do
         printf "instance: $inst_id\n"
@@ -57,7 +57,7 @@ function log () {
             fi
         fi
 
-        local log
+        declare log
         log=$(aws "${region_opt[@]}" --query Output --output text \
                   ec2 get-console-output --instance-id "$inst_id")
         echo -e "$log"

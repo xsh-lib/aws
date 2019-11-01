@@ -15,8 +15,8 @@
 #?   any else: Uncaught error
 #?
 function exist () {
-    local name=${1:?}
-    local out
+    declare name=${1:?}
+    declare out
 
     out=$(aws s3api head-bucket --bucket "$name" 2>&1)
 

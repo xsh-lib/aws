@@ -19,8 +19,8 @@
 #?   !=0: Doesn't exist
 #?
 function exist () {
-    local OPTIND OPTARG opt
-    local -a region_opt
+    declare OPTIND OPTARG opt
+    declare -a region_opt
 
     while getopts r: opt; do
         case $opt in

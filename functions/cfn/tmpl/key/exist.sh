@@ -18,9 +18,9 @@
 #?   Checking key pair existence: foo... [Not Found]
 #?
 function exist () {
-    local OPTIND OPTARG opt
+    declare OPTIND OPTARG opt
 
-    local template
+    declare template
     while getopts t: opt; do
         case $opt in
             t)
@@ -37,7 +37,7 @@ function exist () {
         return 255
     fi
 
-    local names
+    declare names
     names=(
         $(xsh /json/parser eval "$(cat "$template")" \
               '[val["Properties"]["KeyName"] for val in {JSON}["Resources"].values() \
@@ -47,7 +47,7 @@ function exist () {
               | tr -d '[]" ' \
               | sed 's/,/ /g') )
     
-    local ret=0 name
+    declare ret=0 name
 
     if [[ ${#names[@]} -eq 0 ]]; then
         printf "no checkable key pairs found.\n"

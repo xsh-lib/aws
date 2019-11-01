@@ -22,9 +22,9 @@
 #?   You must provide policies in JSON format
 #?
 function put () {
-    local OPTIND OPTARG opt
+    declare OPTIND OPTARG opt
 
-    local username policy_name policy_document
+    declare username policy_name policy_document
     while getopts u:n:d: opt; do
         case $opt in
             u)

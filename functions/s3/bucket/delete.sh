@@ -15,7 +15,7 @@
 #?     0: Not deleted
 #?
 function delete () {
-    local name=${1:?}
+    declare name=${1:?}
 
     XSH_S3_BUCKET_DELETED=0
 

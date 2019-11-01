@@ -9,8 +9,8 @@
 #?   Updated profile.
 #?
 function set () {
-    local name=$1
-    local base_dir property n
+    declare name=$1
+    declare base_dir property n
 
     base_dir=${XSH_HOME}/lib/aws/functions/cfg  # TODO: use varaible instead
     . "${base_dir}/config.conf"

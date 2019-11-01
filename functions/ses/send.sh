@@ -34,14 +34,14 @@
 #?                 The default is `aws/ses/send test email`.
 #?
 function send () {
-    local OPTIND OPTARG opt
+    declare OPTIND OPTARG opt
 
-    local -a region_opt
-    local domain to from
+    declare -a region_opt
+    declare domain to from
 
     # set default
-    local subject='@send test email'
-    local body='This is a test email sent through awscli.'
+    declare subject='@send test email'
+    declare body='This is a test email sent through awscli.'
 
     while getopts r:d:t:f:s:b: opt; do
         case $opt in

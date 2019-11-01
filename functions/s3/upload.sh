@@ -29,10 +29,10 @@
 #?   The URI of the uploaded S3 object.
 #?
 function upload () {
-    local OPTIND OPTARG opt
+    declare OPTIND OPTARG opt
 
-    local -a region_opt
-    local bucket key scheme=s3
+    declare -a region_opt
+    declare bucket key scheme=s3
 
     while getopts r:b:k:o: opt; do
         case $opt in
@@ -54,7 +54,7 @@ function upload () {
         esac
     done
     shift $((OPTIND - 1))
-    local template=${1:?}
+    declare template=${1:?}
 
     if [[ -z $bucket ]]; then
         bucket=aws-s3-upload-$RANDOM

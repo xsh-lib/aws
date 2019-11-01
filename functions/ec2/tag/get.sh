@@ -22,10 +22,10 @@
 #?   Tag name.
 #?
 function get () {
-    local OPTIND OPTARG opt
-    local -a region_opt
+    declare OPTIND OPTARG opt
+    declare -a region_opt
 
-    local resource_id tag
+    declare resource_id tag
 
     while getopts r:i:t: opt; do
         case $opt in

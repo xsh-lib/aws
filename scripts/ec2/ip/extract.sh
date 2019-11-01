@@ -32,9 +32,9 @@ set -eo pipefail
 #?   won't be available after `sudo -E`.
 #?
 function extract () {
-    local OPTIND OPTARG opt
+    declare OPTIND OPTARG opt
 
-    local region ip_attr=PublicIpAddress store
+    declare region ip_attr=PublicIpAddress store
     while getopts r:i opt; do
         case $opt in
             r)
@@ -52,18 +52,18 @@ function extract () {
     store=${1:?}
 
     # const
-    local -a hosts_conf=/etc/hosts
-    local -a hosts_tmpl="%s %s\n"
-    local -a hosts_query="Instances[?not_null(Tags[?Key=='Name'].Value|[0])!=''][$ip_attr,Tags[?Key=='Name'].Value|[0]]"
+    declare -a hosts_conf=/etc/hosts
+    declare -a hosts_tmpl="%s %s\n"
+    declare -a hosts_query="Instances[?not_null(Tags[?Key=='Name'].Value|[0])!=''][$ip_attr,Tags[?Key=='Name'].Value|[0]]"
 
-    local -a ssh_conf=~/.ssh/config
-    local -a ssh_tmpl="Host %s\n    HostName %s\n    User ec2-user\n    IdentityFile ~/.ssh/%s\n    Port 22\n"
-    local -a ssh_query="Instances[?not_null(Tags[?Key=='Name'].Value|[0])!=''][KeyName,$ip_attr,Tags[?Key=='Name'].Value|[0]]"
+    declare -a ssh_conf=~/.ssh/config
+    declare -a ssh_tmpl="Host %s\n    HostName %s\n    User ec2-user\n    IdentityFile ~/.ssh/%s\n    Port 22\n"
+    declare -a ssh_query="Instances[?not_null(Tags[?Key=='Name'].Value|[0])!=''][KeyName,$ip_attr,Tags[?Key=='Name'].Value|[0]]"
 
-    local name
+    declare name
     # dynamic set variables
     for name in conf tmpl query; do
-        local $name=${store}_$name
+        declare $name=${store}_$name
     done
 
     if [[ ! -w "${!conf}" ]]; then
@@ -71,7 +71,7 @@ function extract () {
         exit 255
     fi
 
-    local -a ips
+    declare -a ips
     # list unterminated instances
     # filter out the instances without a tag `Name` or without a value for tag `Name`
     # the `[]` around the tag is stripped
@@ -81,7 +81,7 @@ function extract () {
               -q "${!query}" \
               -o text) )
 
-    local count
+    declare count
     case $store in
         hosts)
             # count number of EC2 instance
@@ -100,9 +100,9 @@ function extract () {
             ;;
     esac
 
-    local entries
+    declare entries
     if [[ $count -gt 0 ]]; then
-        local full_tmpl
+        declare full_tmpl
         # generate full template according to the number of EC2 instance
         full_tmpl=$(xsh /string/repeat/3 "${!tmpl}" "$count")
 
@@ -112,14 +112,14 @@ function extract () {
         return
     fi
 
-    local access_key
+    declare access_key
     access_key=$(aws configure get default.aws_access_key_id)
 
     if [[ -z $region ]]; then
         region=$(aws configure get default.region)
     fi
 
-    local s1 s2
+    declare s1 s2
     s1="## ---- BEGIN OF - ${access_key} - ${region} ----"
     s2="## ------ END OF - ${access_key} - ${region} ----"
 

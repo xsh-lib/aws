@@ -32,10 +32,10 @@
 #?   The AWS Support case ID requested or returned in the call.
 #?
 function create () {
-    local OPTIND OPTARG opt
+    declare OPTIND OPTARG opt
 
-    local subject body
-    local -a options
+    declare subject body
+    declare -a options
 
     while getopts j:b:s:c:l:t:e: opt; do
         case $opt in
