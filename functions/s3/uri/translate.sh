@@ -33,9 +33,10 @@ function translate () {
         return
     fi
 
-    local bucket=$(xsh aws/s3/uri/parser -b "$uri")
-    local key=$(xsh aws/s3/uri/parser -k "$uri")
-    local region=$(xsh aws/s3/uri/parser -r "$uri")
+    local bucket key region
+    bucket=$(xsh aws/s3/uri/parser -b "$uri")
+    key=$(xsh aws/s3/uri/parser -k "$uri")
+    region=$(xsh aws/s3/uri/parser -r "$uri")
 
     xsh aws/s3/uri/generate -s "$scheme" -b "$bucket" -r "$region" -k "$key"
 }

@@ -78,8 +78,9 @@ function parser () {
                 xsh /uri/parser -$opt "$uri"
                 ;;
             r|b)
-                local scheme=$(xsh /uri/parser -s "$uri" | xsh /string/pipe/lower)
-                local host=$(xsh /uri/parser -h "$uri")
+                local scheme host
+                scheme=$(xsh /uri/parser -s "$uri" | xsh /string/pipe/lower)
+                host=$(xsh /uri/parser -h "$uri")
 
                 case $scheme in
                     s3)
