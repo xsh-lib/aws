@@ -1,4 +1,6 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
+
+set -eo pipefail
 
 #? Description:
 #?   Extract EC2 instances Name and IP to local store.

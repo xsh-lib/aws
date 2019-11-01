@@ -1,4 +1,6 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
+
+set -eo pipefail
 
 #? Description:
 #?   Setup AWS SES service step by step, trying to automate the procedure

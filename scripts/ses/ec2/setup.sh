@@ -1,4 +1,6 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
+
+set -eo pipefail
 
 #? Description:
 #?   Setup Sendmail to use AWS SES service send email from EC2 instance.
