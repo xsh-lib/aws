@@ -32,7 +32,7 @@ function delete () {
                 options=(--user-name "$OPTARG")
                 ;;
             i)
-                access_key_ids+=$OPTARG
+                access_key_ids+=("$OPTARG")
                 ;;
             *)
                 return 255

@@ -27,7 +27,7 @@ function delete () {
                 options=(--user-name "$OPTARG")
                 ;;
             n)
-                policy_names+=$OPTARG
+                policy_names+=("$OPTARG")
                 ;;
             *)
                 return 255
