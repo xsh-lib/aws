@@ -58,7 +58,7 @@ function generate () {
     case $scheme in
         s3)
             if [[ -z $bucket ]]; then
-                printf "$FUNCNAME: ERROR: parameter BUCKET null or not set.\n" >&2
+                xsh log error "bucket: parameter null or not set."
                 return 255
             fi
             uri=$scheme://$bucket
@@ -79,7 +79,7 @@ function generate () {
             fi
 
             if [[ -z $region ]]; then
-                printf "$FUNCNAME: ERROR: parameter REGION null or not set.\n" >&2
+                xsh log error "region: parameter null or not set."
                 return 255
             fi
 

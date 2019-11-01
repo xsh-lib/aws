@@ -16,7 +16,7 @@ function set () {
     . "${base_dir}/config.conf"
 
     if [[ -z ${name} ]]; then
-        printf "ERROR: parameter PROFILE null or not set.\n" >&2
+        xsh log error "profile: parameter null or not set."
         return 255
     fi
 

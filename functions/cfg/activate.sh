@@ -15,10 +15,10 @@ function activate () {
     . "${base_dir}/config.conf"
 
     if [[ -z ${profile} ]]; then
-        printf "ERROR: parameter PROFILE null or not set.\n" >&2
+        xsh log error "profile: parameter null or not set."
         return 255
     elif [[ ${profile} == 'default' ]]; then
-        printf "ERROR: default profile doesn't need to activate.\n" >&2
+        xsh log error "default profile doesn't need to activate."
         return 255
     else
         :

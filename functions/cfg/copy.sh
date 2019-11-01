@@ -17,7 +17,7 @@ function copy () {
     region=$3
 
     if [[ -z ${source} || -z ${target} ]]; then
-        printf "ERROR: parameter SOURCE and/or TARGET null or not set.\n" >&2
+        xsh log error "source/target: parameter null or not set."
         return 255
     fi
 

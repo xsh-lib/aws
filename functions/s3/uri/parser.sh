@@ -1,5 +1,3 @@
-xsh import x/uri/parser
-
 #? Description:
 #?   Parse S3 object URI and return whether the URI is valid.
 #?
@@ -96,7 +94,7 @@ function parser () {
                         ;;
                     *)
                         if [[ ! $host =~ $REGEX_HOST ]]; then
-                            printf "$FUNCNAME: ERROR: URI is not valid: '%s'.\n" "$uri" >&2
+                            xsh log error "$uri: URI is not valid."
                             return 255
                         fi
 
