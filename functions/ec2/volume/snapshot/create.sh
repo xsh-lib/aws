@@ -70,7 +70,7 @@ function create () {
     # tag the snapshot
     local ts snapshot_tag
     ts=$(date '+%Y%m%d-%H%M')
-    snapshot_tag="${volume_tag:-${instance_tag:-snapshot}}-$ts"
+    snapshot_tag=${volume_tag:-${instance_tag:-snapshot}}-$ts
 
     printf "tagging the snapshot: $snapshot_id ..."
     xsh aws/ec2/tag/create "${region_sopt[@]}" -i "$snapshot_id" -t Name -v "$snapshot_tag"

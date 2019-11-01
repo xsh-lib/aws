@@ -40,7 +40,7 @@ function get () {
 
     name=$1
 
-    base_dir="${XSH_HOME}/lib/aws/functions/cfg"  # TODO: use varaible instead
+    base_dir=${XSH_HOME}/lib/aws/functions/cfg  # TODO: use varaible instead
     . "${base_dir}/config.conf"
 
     xsh /ini/parser -a -p "${AWS_CFG_CONFIG_ENV_PREFIX}" "${AWS_CFG_CONFIG}"

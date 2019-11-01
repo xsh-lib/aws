@@ -8,7 +8,7 @@ function list () {
     local result pattern
     local i sep str properties property sensitive base_dir
 
-    base_dir="${XSH_HOME}/lib/aws/functions/cfg"  # TODO: use varaible instead
+    base_dir=${XSH_HOME}/lib/aws/functions/cfg  # TODO: use varaible instead
     . "${base_dir}/config.conf"
 
     properties=(

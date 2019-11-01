@@ -93,7 +93,7 @@ function generate () {
                 domain_suffix='.cn'
             fi
 
-            uri="s3${delimiter}${region}.amazonaws.com${domain_suffix}"
+            uri=s3${delimiter}${region}.amazonaws.com${domain_suffix}
 
             if [[ -n $bucket ]]; then
                 uri=$bucket.$uri
