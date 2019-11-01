@@ -1,32 +1,78 @@
 #? Description:
 #?   Create snapshot for EC2 EBS volume.
+#?   The snapshot is tagged after it's created.
 #?
 #? Usage:
 #?   @create
-#?     [-i VOLUME_ID]
+#?     [-r REGION]
+#?     -i VOLUME_ID
 #?
 #? Options:
-#?   [-i VOLUME_ID]
+#?   [-r REGION]
+#?
+#?   Region name.
+#?   Defalt is to use the region in your AWS CLI profile.
+#?
+#?   -i VOLUME_ID
 #?
 #?   EBS volume identifier.
 #?
+#? @xsh /trap/err -e
+#? @subshell
+#?
 function create () {
-    local volume_id=${1:?}
+    local OPTIND OPTARG opt
+    local -a region_sopt region_lopt
+    local volume_id
 
-    # Creating snapshot
-    local snapshot_id=$(
-        aws ec2 create-snapshot \
-            --volume-id "$volume_id" \
+    while getopts r:i: opt; do
+        case $opt in
+            r)
+                region_sopt=(-r "${OPTARG:?}")
+                region_lopt=(--region "${OPTARG:?}")
+                ;;
+            i)
+                volume_id=$OPTARG
+                ;;
+            *)
+                return 255
+                ;;
+        esac
+    done
+
+    local snapshot_id
+
+    # creating snapshot
+    printf "creating snapshot for volume: $volume_id ..."
+    snapshot_id=$(
+        aws "${region_lopt[@]}" \
             --query "SnapshotId" \
             --output text \
-          )
+            ec2 create-snapshot --volume-id "$volume_id")
+    printf " $snapshot_id ... [ok]\n"
 
-    local tag_name="$(xsh aws/ec2/tag/get "$volume_id" Name)"
+    # get the tag `Name` for volume
+    local volume_tag
+    volume_tag=$(xsh aws/ec2/tag/get "${region_sopt[@]}" -i "$volume_id" -t Name)
 
-    if [[ -n $tag_name && $tag_name != 'None' && -n $snapshot_id ]]; then
-        local ts=$(date '+%Y%m%d-%H%M')
-        local name="${tag_name:?}-${ts:?}"
+    # get instance id
+    local instance_id
+    instance_id=$(
+        aws "${region_lopt[@]}" \
+            --query "Volumes[].Attachments[].InstanceId" \
+            --output text \
+            ec2 describe-volumes --volume-ids "$volume_id")
 
-        xsh aws/ec2/tag/create "$snapshot_id" "$name"
-    fi
+    # get the tag `Name` for instance
+    local instance_tag
+    instance_tag=$(xsh aws/ec2/tag/get "${region_sopt[@]}" -i "$instance_id" -t Name)
+
+    # tag the snapshot
+    local ts snapshot_tag
+    ts=$(date '+%Y%m%d-%H%M')
+    snapshot_tag="${volume_tag:-${instance_tag:-snapshot}}-$ts"
+
+    printf "tagging the snapshot: $snapshot_id ..."
+    xsh aws/ec2/tag/create "${region_sopt[@]}" -i "$snapshot_id" -t Name -v "$snapshot_tag"
+    printf " $snapshot_tag ... [ok]\n"
 }

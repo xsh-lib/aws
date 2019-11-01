@@ -3,29 +3,38 @@
 #?
 #? Usage:
 #?   @create
-#?     [-n INSTANCE_NAME]
-#?     [-i INSTANCE_ID]
+#?     [-r REGION]
+#?     [-n INSTANCE_NAME] [...]
+#?     [-i INSTANCE_ID] [...]
 #?
 #? Options:
-#?   [-n INSTANCE_NAME]
+#?   [-r REGION]
 #?
-#?   EC2 instance tag value for tag 'Name'.
+#?   Region name.
+#?   Defalt is to use the region in your AWS CLI profile.
 #?
-#?   [-i INSTANCE_ID]
+#?   [-n INSTANCE_NAME] [...]
+#?
+#?   EC2 instance tag value for tag `Name`.
+#?
+#?   [-i INSTANCE_ID] [...]
 #?
 #?   EC2 instance identifier.
 #?
 function create () {
     local OPTIND OPTARG opt
+    local -a region_opt instance_names instance_ids
 
-    declare -a instance_names instance_ids
-    while getopts n:i: opt; do
+    while getopts r:n:i: opt; do
         case $opt in
+            r)
+                region_opt=(-r "${OPTARG:?}")
+                ;;
             n)
-                instance_names+=( "$OPTARG" )
+                instance_names+=("$OPTARG")
                 ;;
             i)
-                instance_ids+=( "$OPTARG" )
+                instance_ids+=("$OPTARG")
                 ;;
             *)
                 return 255
@@ -33,33 +42,40 @@ function create () {
         esac
     done
 
-    declare -a volume_ids
+    local -a volume_ids
 
-    # By tag Names
-    if [[ -n ${instance_names[@]} ]]; then
-        local comma_list="$(echo "${instance_names[@]}" | sed 's/ /,/g')"
+    # by tag Names
+    if [[ ${#instance_names[@]} -gt 0 ]]; then
+        local csv_names
+        csv_names=$(IFS=,; echo "${instance_names[*]}")
+
+        # collect volume
         volume_ids+=(
-            "$(aws ec2 describe-instances \
-                  --filters Name=tag:Name,Values=${comma_list:?} \
-                  --query "Reservations[*].Instances[*].BlockDeviceMappings[*].Ebs.VolumeId" \
-                  --output text
-            )"
+            $(xsh aws/ec2/desc \
+                  "${region_opt[@]}" \
+                  -f "tag:Name=${csv_names:?}" \
+                  -q "Instances[*].BlockDeviceMappings[*].Ebs.VolumeId" \
+                  -o text
+            )
         )
     fi
 
-    # By instance IDs
-    if [[ -n ${instance_ids[@]} ]]; then
+    # by instance IDs
+    if [[ ${#instance_ids[@]} -gt 0 ]]; then
+        # collect volume
         volume_ids+=(
-            "$(aws ec2 describe-instances \
-                  --instance-ids "${instance_ids[@]}" \
-                  --query "Reservations[*].Instances[*].BlockDeviceMappings[*].Ebs.VolumeId" \
-                  --output text
-            )"
+            $(xsh aws/ec2/desc \
+                  "${region_opt[@]}" \
+                  -i "${instance_ids[*]}" \
+                  -q "Instances[*].BlockDeviceMappings[*].Ebs.VolumeId" \
+                  -o text
+            )
         )
     fi
 
     local volume_id
     for volume_id in "${volume_ids[@]}"; do
-        xsh aws/ec2/snapshot/create "${volume_id:?}"
+        # create snapshot
+        xsh aws/ec2/volume/snapshot/create "${region_opt[@]}" -i "$volume_id"
     done
 }

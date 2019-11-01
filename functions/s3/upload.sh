@@ -2,12 +2,16 @@
 #?   Upload file to S3 bucket.
 #?
 #? Usage:
-#?   @upload [-b BUCKET] [-k KEY] [-o SCHEME] FILE
+#?   @upload [-r REGION] [-b BUCKET] [-k KEY] [-o SCHEME] FILE
 #?
 #? Options:
+#?   [-r REGION]   Region name.
+#?                 Create bucket in this region if the buctet doesn't exist.
+#?                 Defalt is to use the region in your AWS CLI profile.
+#?
 #?   [-b BUCKET]   S3 bucket name.
-#?                 Valid characters are lowercase letter,.
-#?                 If omit this, a default bucket name is generated in syntax:
+#?                 Valid characters are lowercase letters.
+#?                 If omit this, a bucket will be created as name syntax:
 #?                 `aws-s3-upload-$RANDOM`.
 #?
 #?   [-k KEY]      S3 bucket object key.
@@ -27,10 +31,14 @@
 function upload () {
     local OPTIND OPTARG opt
 
+    local -a region_opt
     local bucket key scheme=s3
 
-    while getopts b:k:o: opt; do
+    while getopts r:b:k:o: opt; do
         case $opt in
+            r)
+                region_opt=(-r "${OPTARG:?}")
+                ;;
             b)
                 bucket=$OPTARG
                 ;;
@@ -57,7 +65,7 @@ function upload () {
     fi
 
     # create bucket if not exsit
-    xsh aws/s3/bucket/create "$bucket" >/dev/null
+    xsh aws/s3/bucket/create "${region_opt[@]}" "$bucket" >/dev/null
 
     # upload file to S3 bucket
     aws s3 cp --only-show-errors "$template" "s3://$bucket/$key"
@@ -66,5 +74,5 @@ function upload () {
     fi
 
     # generate the uploaded S3 object URI
-    xsh aws/s3/uri/generate -s "$scheme" -b "$bucket" -k "$key"
+    xsh aws/s3/uri/generate "${region_opt[@]}" -s "$scheme" -b "$bucket" -k "$key"
 }

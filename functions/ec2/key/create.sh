@@ -2,20 +2,40 @@
 #?   Create EC2 key pair.
 #?
 #? Usage:
-#?   @create [-f FILE] [-m MODE] <NAME>
+#?   @create [-r REGION] [-f FILE] [-m MODE] NAME
 #?
 #? Options:
-#?   [-f FILE]   Save the private key to the FILE.
-#?               If a file with the same name already exists, returns an error.
-#?   [-m MODE]   umask mode for the FILE.
-#?   <NAME>      Name for the key pair.
+#?   [-r REGION]
+#?
+#?   Region name.
+#?   Defalt is to use the region in your AWS CLI profile.
+#?
+#?   [-f FILE]
+#?
+#?   Save the private key to the FILE.
+#?   If a file with the same name already exists, returns an error.
+#?
+#?   [-m MODE]
+#?
+#?   umask mode for the FILE.
+#?
+#?   NAME
+#?
+#?   Name for the key pair.
+#?
+#? Output:
+#?   The private key created.
 #?
 function create () {
     local OPTIND OPTARG opt
+    local -a region_opt
     local file mode
 
-    while getopts f:m: opt; do
+    while getopts r:f:m: opt; do
         case $opt in
+            r)
+                region_opt=(--region "${OPTARG:?}")
+                ;;
             f)
                 file=$OPTARG
                 ;;
@@ -29,10 +49,10 @@ function create () {
     done
     shift $((OPTIND - 1))
 
-    local json=$(aws ec2 create-key-pair --key-name "${1:?}")
-    printf "%s\n" "$json"
-
-    local key=$(xsh /json/parser get "$json" "KeyMaterial")
+    local key
+    key=$(aws "${region_opt[@]}" --query "KeyMaterial" --output text \
+                     ec2 create-key-pair --key-name "${1:?}")
+    printf "%s\n" "$key"
 
     if [[ -n $file ]]; then
         if [[ -e $file ]]; then

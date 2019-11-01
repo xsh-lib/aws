@@ -2,12 +2,16 @@
 #?   Upload CloudFormation template to S3 bucket.
 #?
 #? Usage:
-#?   @upload [-b BUCKET] [-k KEY] [-v] TEMPLATE
+#?   @upload [-r REGION] [-b BUCKET] [-k KEY] [-v] -t TEMPLATE
 #?
 #? Options:
+#?   [-r REGION]   Region name.
+#?                 Create bucket in this region if the bucket doesn't exist.
+#?                 Defalt is to use the region in your AWS CLI profile.
+#?
 #?   [-b BUCKET]   S3 bucket name.
-#?                 Valid characters are lowercase letter,.
-#?                 If omit this, a default bucket name is generated in syntax:
+#?                 Valid characters are lowercase letters.
+#?                 If omit this, a bucket will be created as name syntax:
 #?                 `aws-cfn-tmpl-upload-$RANDOM`.
 #?
 #?   [-k KEY]      S3 bucket object key.
@@ -15,9 +19,9 @@
 #?
 #?   [-v]          Validate the template before the upload.
 #?
-#?   TEMPLATE      Template to upload.
+#?   -t TEMPLATE   Template to upload.
 #?                 The TEMPLATE must be either of:
-#?                   * Local file path.
+#?                   * Local file path or stdin.
 #?                   * S3 object URI in scheme `s3`.
 #?
 #? Output:
@@ -26,10 +30,15 @@
 function upload () {
     local OPTIND OPTARG opt
 
-    local bucket key validate
+    local -a region_opt
+    local bucket=aws-cfn-tmpl-upload-$RANDOM \
+          key validate template
 
-    while getopts b:k:v opt; do
+    while getopts r:b:k:vt: opt; do
         case $opt in
+            r)
+                region_opt=(-r "${OPTARG:?}")
+                ;;
             b)
                 bucket=$OPTARG
                 ;;
@@ -39,25 +48,27 @@ function upload () {
             v)
                 validate=1
                 ;;
+            t)
+                template=$OPTARG
+                ;;
             *)
                 return 255
                 ;;
         esac
     done
-    shift $((OPTIND - 1))
-    local template=${1:?}
 
-    if [[ -z $bucket ]]; then
-        bucket=aws-cfn-tmpl-upload-$RANDOM
+    if [[ -z $template ]]; then
+        xsh log error "template: parameter null or not set."
+        return 255
     fi
 
     if [[ $validate -eq 1 ]]; then
         # validate template
-        xsh aws/cfn/tmpl/validate "$template"
+        xsh aws/cfn/tmpl/validate -t "$template"
         if [[ $? -ne 0 ]]; then
             return 255
         fi
     fi
 
-    xsh aws/s3/upload -b "$bucket" -k "$key" -o https "$template"
+    xsh aws/s3/upload "${region_opt[@]}" -b "$bucket" -k "$key" -o https "$template"
 }

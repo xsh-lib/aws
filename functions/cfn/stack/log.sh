@@ -2,52 +2,53 @@
 #?   Get console log of EC2 instance of CloudFormation stack.
 #?
 #? Usage:
-#?   @log [-w] <STACK_NAME> <LOGICAL_ID>
+#?   @log [-r REGION] [-w] -s STACK_NAME -l LOGICAL_ID
 #?
 #? Options:
-#?   [-w]           Wait the instance being running status.
-#?   <STACK_NAME>   Stack name.
-#?   <LOGICAL_ID>   Logical identifier of EC2 instance in the stack.
+#?   [-r REGION]     Region name.
+#?                   Defalt is to use the region in your AWS CLI profile.
+#?   [-w]            Wait the instance being running status.
+#?   -s STACK_NAME   Stack name.
+#?   -l LOGICAL_ID   Logical identifier of EC2 instance in the stack.
 #?
 function log () {
     local OPTIND OPTARG opt
+
+    local -a region_opt
     local wait stack_name logical_id
 
-    while getopts w opt; do
+    while getopts r:ws:l: opt; do
         case $opt in
+            r)
+                region_opt=(--region "${OPTARG:?}")
+                ;;
             w)
                 wait=1
+                ;;
+            s)
+                stack_name=$OPTARG
+                ;;
+            l)
+                logical_id=$OPTARG
                 ;;
             *)
                 return 255
                 ;;
         esac
     done
-    shift $((OPTIND - 1))
-    stack_name=${1:?}
-    logical_id=${2:?}
 
-    # Constant
-    local -r AWS_EC2='AWS::EC2::Instance'
+    local physical_id
+    physical_id=$(xsh aws/cfn/stack/resource/desc \
+                      "${region_opt[@]}" \
+                      -q StackResourceDetail.PhysicalResourceId \
+                      -o text \
+                      -s "$stack_name" \
+                      -l "$logical_id")
 
-    local json=$(xsh aws/cfn/stack/resource/desc "$stack_name" "$logical_id")
-    local type physical_id
-
-    if [[ -n $json ]]; then
-        type=$(xsh /json/parser get "$json" StackResourceDetail.ResourceType)
-
-        if [[ $type != $AWS_EC2 ]]; then
-            xsh log error "the resource is not EC2 type: $type: $logical_id"
-            return 255
-        fi
-
-        physical_id=$(xsh /json/parser get "$json" StackResourceDetail.PhysicalResourceId)
-    else
-        xsh log error "not found resource: $logical_id in the stack: $stack_name"
+    if [[ -z $physical_id ]]; then
+        xsh log error "$logical_id: the resource is not found in the stack: $stack_name"
         return 255
-    fi
-
-    if [[ -n $physical_id ]]; then
-        xsh /ec2/log ${wait//1/-w} "$physical_id"
+    else
+        xsh aws/ec2/log "${region_opt[@]}" ${wait//1/-w} -i "$physical_id"
     fi
 }

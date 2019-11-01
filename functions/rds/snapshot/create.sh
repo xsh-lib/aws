@@ -2,21 +2,31 @@
 #?   Create snapshots for RDS instances.
 #?
 #? Usage:
-#?   @create -i <INSTANCE_ID> [...]
+#?   @create
+#?     [-r REGION]
+#?     [-i INSTANCE_ID] [...]
 #?
 #? Options:
-#?   -i <INSTANCE_ID> [...]
+#?   [-r REGION]
 #?
-#?   RDS instance identifier.
+#?   Region name.
+#?   Defalt is to use the region in your AWS CLI profile.
+#?
+#?   [-i INSTANCE_ID] [...]
+#?
+#?   EC2 instance identifier.
 #?
 function create () {
     local OPTIND OPTARG opt
+    local -a region_opt instance_ids
 
-    declare -a instance_ids
-    while getopts i: opt; do
+    while getopts r:i: opt; do
         case $opt in
+            r)
+                region_opt=(--region "${OPTARG:?}")
+                ;;
             i)
-                instance_ids+=( "$OPTARG" )
+                instance_ids+=("$OPTARG")
                 ;;
             *)
                 return 255
@@ -28,8 +38,9 @@ function create () {
     for instance_id in "${instance_ids[@]}"; do
         ts=$(date '+%Y%m%d-%H%M')
 
-        # Creating snapshot
-        aws rds create-db-snapshot \
+        # creating snapshot
+        aws "${region_opt[@]}" \
+            rds create-db-snapshot \
             --db-instance-identifier "${instance_id:?}" \
             --db-snapshot-identifier "${instance_id:?}-${ts:?}"
     done

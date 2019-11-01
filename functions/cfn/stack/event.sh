@@ -2,41 +2,56 @@
 #?   Show CloudFormation stack events.
 #?
 #? Usage:
-#?   @event [-e] <STACK_ID | STACK_NAME>
+#?   @event [-r REGION] [-e] <-s STACK_ID | STACK_NAME>
 #?
 #? Options:
-#?   [-e]                      Show error events only.
-#?   <STACK_ID | STACK_NAME>   The name or unique stack ID of the stack.
+#?   [-r REGION]
+#?
+#?   Region name.
+#?   Defalt is to use the region in your AWS CLI profile.
+#?
+#?   [-e]
+#?
+#?   Show error events only.
+#?
+#?   <-s STACK_ID | STACK_NAME>
+#?
+#?   The name or unique stack ID of the stack.
 #?
 function event () {
     local OPTIND OPTARG opt
 
+    local -a region_opt
     local error stack_name
 
-    while getopts e opt; do
+    while getopts r:es: opt; do
         case $opt in
+            r)
+                region_opt=(--region "${OPTARG:?}")
+                ;;
             e)
                 error=1
+                ;;
+            s)
+                stack_name=$OPTARG
                 ;;
             *)
                 return 255
                 ;;
         esac
     done
-    shift $((OPTIND - 1))
-    stack_name=${1:?}
 
-    function __event__ () {
-        aws cloudformation describe-stack-events --stack-name "$stack_name"
-    }
-    
+    if [[ -z $stack_name ]]; then
+        xsh log error "parameter STACK_NAME null or not set."
+        return 255
+    fi
+
     local -r error_match_options=( -B1 -A7 '(CREATE_FAILED|UPDATE_FAILED)' )
 
     if [[ $error -eq 1 ]]; then
-        __event__ | egrep "${error_match_options[@]}" || :
+        aws "${region_opt[@]}" cloudformation describe-stack-events --stack-name "$stack_name" \
+            | egrep "${error_match_options[@]}" || :
     else
-        __event__
+        aws "${region_opt[@]}" cloudformation describe-stack-events --stack-name "$stack_name"
     fi
-
-    unset -f __event__
 }

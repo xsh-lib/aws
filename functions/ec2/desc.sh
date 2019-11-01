@@ -3,11 +3,22 @@
 #?
 #? Usage:
 #?   @desc
+#?     [-i INSTANCE_ID] [...]
+#?     [-r REGION]
 #?     [-f FILTER] [...]
 #?     [-q QUERY]
 #?     [-o json | text | table]
 #?
 #? Options:
+#?   [-i INSTANCE_ID] [...]
+#?
+#?   EC2 instance identifier.
+#?
+#?   [-r REGION]
+#?
+#?   Region name.
+#?   Defalt is to use the region in your AWS CLI profile.
+#?
 #?   [-f FILTER] [...]
 #?
 #?   The filters, syntax: `NAME=VALUE`.
@@ -57,10 +68,16 @@
 #?
 function desc () {
     local OPTIND OPTARG opt
-    local -a filters query output
+    local -a instance_ids region_opt filters query output
 
-    while getopts f:q:o: opt; do
+    while getopts i:r:f:q:o: opt; do
         case $opt in
+            i)
+                instance_ids+=("$OPTARG")
+                ;;
+            r)
+                region_opt=(--region "${OPTARG:?}")
+                ;;
             f)
                 filters+=("Name=${OPTARG%%=*}")
                 filters+=("Values=${OPTARG#*=}")
@@ -82,6 +99,11 @@ function desc () {
     if [[ ${#filters} -gt 0 ]]; then
         filters=(--filters "$(IFS=$','; echo "${filters[*]}")")
     fi
-    
-    aws "${query[@]}" "${output[@]}" ec2 describe-instances "${filters[@]}"
+
+    if [[ ${#instance_ids} -gt 0 ]]; then
+        instance_ids=(--instance-ids "${instance_ids[*]}")
+    fi
+
+    aws "${region_opt[@]}" "${query[@]}" "${output[@]}" \
+        ec2 describe-instances "${instance_ids[@]}" "${filters[@]}"
 }

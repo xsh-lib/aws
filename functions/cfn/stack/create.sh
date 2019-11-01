@@ -3,18 +3,29 @@
 #?
 #? Usage:
 #?   @create
-#?     -n STACK_NAME
+#?     [-r REGION]
+#?     -s STACK_NAME
+#?     -t TEMPLATE
 #?     [-p POLICY]
 #?     [-R]
 #?     [-w TIMEOUT]
 #?     [<-o KEY=VALUE> ...]
-#?     TEMPLATE
 #?
 #? Options
-#?   -n STACK_NAME
+#?   [-r REGION]
+#?
+#?   Region name.
+#?   Defalt is to use the region in your AWS CLI profile.
+#?
+#?   -s STACK_NAME
 #?
 #?   The name for the stack.
 #?   The name must be unique in the region in which you are creating the stack.
+#?
+#?   -t TEMPLATE
+#?
+#?   Template file.
+#?   The file must be at local or be a S3 URI starting with `https://`.
 #?
 #?   [-p POLICY]
 #?
@@ -31,21 +42,22 @@
 #?
 #?   This option is past through to `create-stack --parameters`.
 #?
-#?   TEMPLATE
-#?
-#?   Template file.
-#?   The file must be at local or be a S3 URI starting with `https://`.
-#?
 function create () {
     local OPTIND OPTARG opt
 
+    local -a region_opt options pass_options
     local stack_name stack_policy template
-    declare -a options pass_options
 
-    while getopts n:p:w:Ro: opt; do
+    while getopts r:s:t:p:w:Ro: opt; do
         case $opt in
-            n)
+            r)
+                region_opt=(--region "${OPTARG:?}")
+                ;;
+            s)
                 stack_name=$OPTARG
+                ;;
+            t)
+                template=$OPTARG
                 ;;
             p)
                 stack_policy=$OPTARG
@@ -68,8 +80,6 @@ function create () {
                 ;;
         esac
     done
-    shift $((OPTIND - 1))
-    template=${1:?}
 
     if [[ -z $stack_name ]]; then
         xsh log error "parameter STACK_NAME null or not set."
@@ -109,7 +119,7 @@ function create () {
     done
 
     # create Stack
-    aws cloudformation create-stack "${options[@]}" && \
+    aws "${region_opt[@]}" cloudformation create-stack "${options[@]}" && \
         # block to wait stack create complete
-        aws cloudformation wait stack-create-complete --stack-name "$stack_name"
+        aws "${region_opt[@]}" cloudformation wait stack-create-complete --stack-name "$stack_name"
 }

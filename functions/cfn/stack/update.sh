@@ -9,31 +9,41 @@
 #?
 #? Usage:
 #?   @update
-#?     -t TEMPLATE | -r
-#?     [-s | -d]
+#?     [-r REGION]
+#?     -s <STACK_ID | STACK_NAME>
+#?     -t TEMPLATE | -T
+#?     [-S | -D]
 #?     [-p POLICY | -P POLICY_DURING_UPDATE]
 #?     [<-o KEY=VALUE> ...]
-#?     <STACK_ID | STACK_NAME>
 #?
 #? Options:
+#?   [-r REGION]
+#?
+#?   Region name.
+#?   Defalt is to use the region in your AWS CLI profile.
+#?
+#?   -s <STACK_ID | STACK_NAME>
+#?
+#?   The name or unique stack ID of the stack that is updating.
+#?
 #?   -t TEMPLATE
 #?
 #?   Template file.
 #?   The file must be at local or be a S3 URI starting with `https://`.
-#?   If omit this, must give `-r`.
+#?   If omit this, must give `-T`.
 #?
-#?   -r
+#?   -T
 #?
 #?   Reuse the existing template that is associated with the stack that is updating.
 #?   If omit this, must give `-t TEMPLATE`.
 #?
-#?   [-s]
+#?   [-S]
 #?
 #?   Create change set for updating a stack.
 #?   The execution of change set needs addtional manual step to trigger.
 #?   This is the default option.
 #?
-#?   [-d]
+#?   [-D]
 #?
 #?   Directly updates a stack.
 #?   This is a DANGER option, which may cause unexpected recreation/replacement
@@ -57,28 +67,30 @@
 #?
 #?   `ParameterKey=KEY,ParameterValue=VALUE ...`
 #?
-#?   <STACK_ID | STACK_NAME>
-#?
-#?   The name or unique stack ID of the stack that is updating.
-#?
 function update () {
     local OPTIND OPTARG opt
 
+    local -a region_opt options
     local template reuse update stack_policy stack_policy_during_update stack_name
-    declare -a options
 
-    while getopts t:rsdp:P:o: opt; do
+    while getopts r:s:t:TSDp:P:o: opt; do
         case $opt in
+            r)
+                region_opt=(--region "${OPTARG:?}")
+                ;;
+            s)
+                stack_name=$OPTARG
+                ;;
             t)
                 template=$OPTARG
                 ;;
-            r)
+            T)
                 reuse=1
                 ;;
-            s)
+            S)
                 update='changeset'
                 ;;
-            d)
+            D)
                 update='direct'
                 ;;
             p)
@@ -99,8 +111,6 @@ function update () {
                 ;;
         esac
     done
-    shift $((OPTIND - 1))
-    stack_name=${1:?}
 
     if [[ -z $template && $reuse -ne 1 ]]; then
         xsh log error "must supply -t TEMPLATE or -r."
@@ -147,7 +157,7 @@ function update () {
                 --change-set-name "changeset-$(date '+%Y%m%d-%H%M-%S')"
             )
 
-            aws cloudformation create-change-set "${options[@]}"
+            aws "${region_opt[@]}" cloudformation create-change-set "${options[@]}"
 
             # TODO:
             # 1. Process change set.
@@ -156,10 +166,10 @@ function update () {
             #    * Generate URL to changeset console: https://console.amazonaws.cn/cloudformation/home?region=cn-north-1#/changeset/detail?changeSetId=arn:aws-cn:cloudformation:cn-north-1:255522960314:changeSet%2Fchangeset-20160831-0141-000%2F64441228-2b3a-4639-a418-ee08b30f646a
             ;;
         direct)
-            aws cloudformation update-stack "${options[@]}"
+            aws "${region_opt[@]}" cloudformation update-stack "${options[@]}"
 
             # Block to wait stack create complete
-            aws cloudformation wait stack-update-complete --stack-name "$stack_name"
+            aws "${region_opt[@]}" cloudformation wait stack-update-complete --stack-name "$stack_name"
             ;;
         *)
             return 255

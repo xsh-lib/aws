@@ -2,43 +2,56 @@
 #?   Validate CloudFormation template file.
 #?
 #? Usage:
-#?   @validate <TEMPALTE>
+#?   @validate -t TEMPALTE
 #?
 #? Options:
-#?   <TEMPLATE>   Template file.
-#?                Could be a local file path or stdin, or a S3 object URI.
+#?   -t TEMPLATE   Template file.
+#?                 The TEMPLATE must be either of:
+#?                   * Local file path or stdin.
+#?                   * S3 object URI in scheme `s3`, `http` or `https`.
 #?
 #? Examples:
-#?   $ @validate /tmp/template.json
+#?   $ @validate -t /tmp/template.json
 #?
-#?   $ cat /tmp/template.json | @validate
+#?   $ cat /tmp/template.json | @validate -t
 #?
-#?   $ @validate s3://mybucket/template.json
+#?   $ @validate -t s3://mybucket/template.json
 #?
-#?   $ @validate https://mybucket.s3-ap-northeast-1.awsamazon.com/template.json
+#?   $ @validate -t https://mybucket.s3-ap-northeast-1.awsamazon.com/template.json
 #?
 function validate () {
-    local template=$1
+    local OPTIND OPTARG opt
 
-    if [[ -z $template && ! -s /dev/stdin ]]; then
-        printf "$FUNCNAME: ERROR: parameter TEMPLATE null or not set.\n" >&2
+    local template
+    while getopts t: opt; do
+        case $opt in
+            t)
+                template=$OPTARG
+                ;;
+            *)
+                return 255
+                ;;
+        esac
+    done
+
+    if [[ -z $template ]]; then
+        xsh log error "template: parameter null or not set."
         return 255
     fi
 
     local scheme
-
-    if [[ -n $template ]]; then
-        scheme=$(xsh /uri/parser -s "$template" | xsh /string/pipe/lower)
-    fi
+    scheme=$(xsh /uri/parser -s "$template" | xsh /string/pipe/lower)
 
     case $scheme in
-        s3|http|https)
+        s3)
             template=$(xsh aws/s3/uri/translate -s https "$template")
-            aws cloudformation validate-template --template-url "$template" 1>/dev/null
+            aws cloudformation validate-template --template-url "$template" >/dev/null
+            ;;
+        http|https)
+            aws cloudformation validate-template --template-url "$template" >/dev/null
             ;;
         '')
-            cat "${template:--}" \
-                | aws cloudformation validate-template --template-body "$(cat -)" 1>/dev/null
+            aws cloudformation validate-template --template-body "$(cat "$template")" >/dev/null
             ;;
         *)
             return 255

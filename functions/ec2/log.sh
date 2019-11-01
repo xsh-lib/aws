@@ -2,37 +2,64 @@
 #?   Get console log of EC2 instances.
 #?
 #? Usage:
-#?   @log [-w] <INSTANCE_ID> [...]
+#?   @log [-r REGION] [-w] -i INSTANCE_ID [...]
 #?
 #? Options:
-#?   [-w]           Wait the instance being running status.
-#?   <INSTANCE_ID>  Instance identifier.
+#?   [-r REGION]
+#?
+#?   Region name.
+#?   Defalt is to use the region in your AWS CLI profile.
+#?
+#?   [-w]
+#?
+#?   Wait the instance come to running status.
+#?   It will poll every 15 seconds until a successful state has been reached. 
+#?   Max waiting time is 10 minutes.
+#?
+#?   -i INSTANCE_ID [...]
+#?
+#?   EC2 instance identifier.
 #?
 function log () {
     local OPTIND OPTARG opt
+    local -a region_opt instance_ids
     local wait
 
-    while getopts w opt; do
+    while getopts r:wi: opt; do
         case $opt in
+            r)
+                region_opt=(--region "${OPTARG:?}")
+                ;;
             w)
                 wait=1
+                ;;
+            i)
+                instance_ids+=("$OPTARG")
                 ;;
             *)
                 return 255
                 ;;
         esac
     done
-    shift $((OPTIND - 1))
 
     local inst_id
 
-    for inst_id in "$@"; do
+    for inst_id in "${instance_ids[@]}"; do
+        printf "instance: $inst_id\n"
         if [[ $wait -eq 1 ]]; then
-            xsh log info "waiting for running status for instance: $inst_id"
-            aws ec2 wait instance-running --instance-ids "$inst_id"
+            printf "waiting the instance come to running..."
+            aws "${region_opt[@]}" ec2 wait instance-running --instance-ids "$inst_id"
+            if [[ $? -eq 0 ]]; then
+                printf " [running]\n"
+            else
+                printf " [timed out]\n"
+                continue
+            fi
         fi
-        xsh log info "instance: $inst_id"
 
-        echo -e "$(aws ec2 get-console-output --instance-id "$inst_id")"
-    fi
+        local log
+        log=$(aws "${region_opt[@]}" --query Output --output text \
+                  ec2 get-console-output --instance-id "$inst_id")
+        echo -e "$log"
+    done
 }

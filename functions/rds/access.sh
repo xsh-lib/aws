@@ -2,9 +2,14 @@
 #?   Maintain RDS instance publicly accessible status.
 #?
 #? Usage:
-#?   @access [-i <INSTANCE_ID>] [-s <on | off>]
+#?   @access [-r REGION] [-i <INSTANCE_ID>] [-s <on | off>]
 #?
 #? Options:
+#?   [-r REGION]
+#?
+#?   Region name.
+#?   Defalt is to use the region in your AWS CLI profile.
+#?
 #?   [-i INSTANCE_ID]
 #?
 #?   RDS instance identifier.
@@ -18,10 +23,14 @@
 #?
 function access () {
     local OPTIND OPTARG opt
+    local -a region_opt
     local instance_id status
 
-    while getopts i:s: opt; do
+    while getopts r:i:s: opt; do
         case $opt in
+            r)
+                region_opt=(--region "${OPTARG:?}")
+                ;;
             i)
                 instance_id=$OPTARG
                 ;;
@@ -35,21 +44,22 @@ function access () {
     done
 
     if [[ $status == on ]]; then
-        aws rds modify-db-instance \
-            --db-instance-identifier "${instance_id:?}" \
-            --publicly-accessible > /dev/null
+        aws "${region_opt[@]}" \
+            rds modify-db-instance --db-instance-identifier "${instance_id:?}" \
+            --publicly-accessible
     elif [[ $status == off ]]; then
-        aws rds modify-db-instance \
-            --db-instance-identifier "${instance_id:?}" \
-            --no-publicly-accessible > /dev/null
+        aws "${region_opt[@]}" \
+            rds modify-db-instance --db-instance-identifier "${instance_id:?}" \
+            --no-publicly-accessible
     elif [[ -n $instance_id ]]; then
-        aws rds describe-db-instances \
-            --db-instance-identifier "${instance_id:?}" \
+        aws "${region_opt[@]}" \
             --query 'DBInstances[*].{DBInstanceIdentifier:DBInstanceIdentifier,PubliclyAccessible:PubliclyAccessible}' \
-            --output text
+            --output text \
+            rds describe-db-instances --db-instance-identifier "${instance_id:?}"
     else
-        aws rds describe-db-instances \
+        aws "${region_opt[@]}" \
             --query 'DBInstances[*].{DBInstanceIdentifier:DBInstanceIdentifier,PubliclyAccessible:PubliclyAccessible}' \
-            --output text
+            --output text \
+            rds describe-db-instances
     fi
 }
