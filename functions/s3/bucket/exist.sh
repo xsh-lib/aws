@@ -18,7 +18,7 @@ function exist () {
     declare name=${1:?}
     declare out
 
-    out=$(aws s3api head-bucket --bucket "$name" 2>&1)
+    out=$(aws s3api head-bucket --bucket "$name" 2>&1 || :)
 
     # remove any non-digit
     out=${out//[^0-9]/}
