@@ -314,14 +314,16 @@ function deploy () {
     case $update in
         changeset)
             xsh log info "updating stack by change set: $stack_name"
-            xsh aws/cfn/stack/update "${region_opt[@]}" -s "$stack_name" -S -t "$template" "${pass_options[@]}"
+            xsh aws/cfn/stack/update "${region_opt[@]}" -s "$stack_name" -S -t "$template" "${pass_options[@]}" \
+                || ret=$?
             ;;
         direct)
             xsh log info "updating stack directly: $stack_name"
             if xsh /io/confirm \
                    -m "Direct update may cause unexpected reources recreation/replacement. Are You Sure?" \
                    -t 30; then
-                xsh aws/cfn/stack/update "${region_opt[@]}" -s "$stack_name" -D -t "$template" "${pass_options[@]}"
+                xsh aws/cfn/stack/update "${region_opt[@]}" -s "$stack_name" -D -t "$template" "${pass_options[@]}" \
+                    || ret=$?
             else
                 ret=1
             fi
@@ -337,10 +339,10 @@ function deploy () {
                 pass_options+=( -R )
             fi
 
-            xsh aws/cfn/stack/create "${region_opt[@]}" -s "$stack_name" -t "$template" "${pass_options[@]}"
+            xsh aws/cfn/stack/create "${region_opt[@]}" -s "$stack_name" -t "$template" "${pass_options[@]}" \
+                || ret=$?
             ;;
     esac
-    ret=$?
 
     # trap clean commands
     if [[ $DELETE -eq 1 ]]; then
