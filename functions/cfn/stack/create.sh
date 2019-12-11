@@ -45,13 +45,14 @@
 function create () {
     declare OPTIND OPTARG opt
 
-    declare -a region_opt options pass_options
+    declare -a region_lopt region_sopt options pass_options
     declare stack_name stack_policy template
 
     while getopts r:s:t:p:w:Ro: opt; do
         case $opt in
             r)
-                region_opt=(--region "${OPTARG:?}")
+                region_lopt=(--region "${OPTARG:?}")
+                region_sopt=(-r "${OPTARG:?}")
                 ;;
             s)
                 stack_name=$OPTARG
@@ -119,7 +120,7 @@ function create () {
     done
 
     # create Stack
-    aws "${region_opt[@]}" cloudformation create-stack "${options[@]}" && \
+    aws "${region_lopt[@]}" cloudformation create-stack "${options[@]}" && \
         # block to wait stack create complete
-        aws "${region_opt[@]}" cloudformation wait stack-create-complete --stack-name "$stack_name"
+        xsh aws/cfn/stack/status/wait "${region_sopt[@]}" -S CREATE_COMPLETE -s "$stack_name"
 }
