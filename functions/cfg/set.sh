@@ -8,6 +8,9 @@
 #? Output:
 #?   Updated profile.
 #?
+#? @xsh /trap/err -eE
+#? @subshell
+#?
 function set () {
     declare name=$1
     declare base_dir property n

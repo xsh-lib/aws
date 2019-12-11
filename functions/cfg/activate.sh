@@ -7,6 +7,9 @@
 #? Output:
 #?   Activated profile.
 #?
+#? @xsh /trap/err -eE
+#? @subshell
+#?
 function activate () {
     declare profile=$1
     declare base_dir property n

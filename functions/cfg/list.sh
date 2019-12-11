@@ -4,6 +4,9 @@
 #? Output:
 #?   List of profiles with properties.
 #?
+#? @xsh /trap/err -eE
+#? @subshell
+#?
 function list () {
     declare result pattern
     declare i sep str properties property sensitive base_dir

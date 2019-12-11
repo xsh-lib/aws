@@ -7,6 +7,9 @@
 #? Output:
 #?   List of profiles with properties.
 #?
+#? @xsh /trap/err -eE
+#? @subshell
+#?
 function get () {
 
     function __get () {

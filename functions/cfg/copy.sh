@@ -9,6 +9,9 @@
 #? Output:
 #?   New profile.
 #?
+#? @xsh /trap/err -eE
+#? @subshell
+#?
 function copy () {
     declare source target region
 
