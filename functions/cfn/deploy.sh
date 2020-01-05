@@ -296,7 +296,7 @@ function deploy () {
             if [[ $XSH_S3_BUCKET_CREATED -eq 1 ]]; then
                 x-trap-return -F $FUNCNAME -a "xsh aws/s3/bucket/delete \"${bucket:?}\""
             else
-                x-trap-return -F $FUNCNAME -a "aws s3 rm \"$(xsh aws/s3/uri/translate -s s3 "$uri")\""
+                x-trap-return -F $FUNCNAME -a "aws s3 rm \"$(xsh aws/s3/uri/translate -s s3 "$depended_uri")\""
             fi
         fi
 
