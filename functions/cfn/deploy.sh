@@ -275,13 +275,13 @@ function deploy () {
         fi
     fi
 
+    # bucket name
+    bucket_name=$(__get_bucket_name__ "$stack_name")
+
     declare item depended_uri key value
     for item in "${DEPENDS[@]}"; do
         key=${item%%=*}
         value=${item#*=}
-
-        # bucket name
-        bucket_name=$(__get_bucket_name__ "$stack_name")
 
         # upload depended template
         xsh log info "uploading nested template: $value"
@@ -301,6 +301,31 @@ function deploy () {
         fi
 
         OPTIONS+=( "${key:?}=${depended_uri:?}" )
+    done
+
+    for item in "${LAMBDA[@]}"; do
+        key=${item%%=*}
+        value=${item#*=}
+
+        param_name_s3bucket=${key%%:*}
+        param_name_s3key=${key#*:}
+
+        declare zipfile
+        # zip local lambda if not zipped
+        if file "$value" | grep -q 'Zip archive data'; then
+            zipfile=$value
+        else
+            zipfile=${value}.zip
+            zip "$zipfile" "$value"
+        fi
+
+        declare s3key=${prekey:?}/$(basename "$zipfile")
+        # upload depended lambda
+        xsh log info "uploading depended lambda: $zipfile"
+        xsh aws/s3/upload "${region_opt[@]}" -b "$bucket_name" -k "$s3key" "$zipfile"
+
+        OPTIONS+=( "${param_name_s3bucket:?}=${bucket_name:?}" )
+        OPTIONS+=( "${param_name_s3key:?}=${s3key:?}" )
     done
 
     # build downstream command options
