@@ -91,7 +91,7 @@ function deploy () {
                 name=$name-$ENVIRONMENT
             fi
 
-            if [[ -n $RANDOM_STACK_NAME_SUFFIX ]]; then
+            if [[ $RANDOM_STACK_NAME_SUFFIX -eq 1 ]]; then
                 name=$name-$RANDOM
             fi
 
