@@ -237,8 +237,6 @@ function deploy () {
     if [[ -z $stack_name ]]; then
         stack_name=$(__get_stack_name__)
     fi
-    OPTIONS+=( "NS=$stack_name" )
-    OPTIONS+=( "NSLowerCase=$(xsh /string/lower "$stack_name")" )
 
     # bucket name
     declare bucket_name
