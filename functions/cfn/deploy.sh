@@ -34,14 +34,14 @@
 #?
 #?   Stack policy file.
 #?   The file must be at local or be a S3 URI starting with `https://`.
-#?   This parameter is ignored with -s (create change set).
+#?   This parameter is ignored with -S (create change set).
 #?
 #?   [-P POLICY_DURING_UPDATE]
 #?
 #?   Stack update policy file.
 #?   The file must be at local or be a S3 URI starting with `https://`.
 #?   This parameter can be only used with -d (directly update stack).
-#?   And it is ignored with -s (create change set).
+#?   And it is ignored with -S (create change set).
 #?
 #?   [-C DIR]
 #?
@@ -51,7 +51,7 @@
 #?
 #?   Directly updates a stack.
 #?   This is a DANGER option, which may cause unexpected recreation/replacement
-#?   of AWS resources. More safe way: use -s to create change set first, then
+#?   of AWS resources. More safe way: use -S to create change set first, then
 #?   execute the change set after the careful review.
 #?
 #?   [-S]
