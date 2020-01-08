@@ -96,8 +96,7 @@ function create () {
         --stack-name "$stack_name"
 
         # always set this in case of creating IAM user
-        --capabilities CAPABILITY_IAM
-        --capabilities CAPABILITY_NAMED_IAM
+        --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM
 
         "${pass_options[@]}"
     )
