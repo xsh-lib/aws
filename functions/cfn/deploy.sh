@@ -63,7 +63,7 @@
 #?
 #?   The name for the stack.
 #?   The name must be unique in the region in which you are creating the stack.
-#?   If supplied -d or -s, and using RANDOM_STACK_NAME_SUFFIX=1, then must supply
+#?   If supplied -D or -S, and using RANDOM_STACK_NAME_SUFFIX=1, then must supply
 #?   this option, otherwise the updating stack won't be found.
 #?   If set this, STACK_NAME in config file will be ignored.
 #?
