@@ -6,6 +6,10 @@
 #? -----------------------------------------------------------------------------
 
 
+XSH_AWS_CFN__CFG_SUPPORTED_VERSIONS=(
+        0.1.0
+)
+
 XSH_AWS_CFN__CFG_PROPERTY_NAMES=(
     ENVIRONMENT
     STACK_NAME

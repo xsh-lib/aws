@@ -265,14 +265,10 @@
 #?
 function deploy () {
 
-    declare SUPPORTING_CONFIG_VERSIONS=(
-        0.1.0
-    )
-
     function __check_config_version__ () {
         declare version=${1:?}
         # the subshell with `test -n` must be double quoted
-        test -n "$(xsh /array/search SUPPORTING_CONFIG_VERSIONS "$version")"
+        test -n "$(xsh /array/search XSH_AWS_CFN__CFG_SUPPORTED_VERSIONS "$version")"
         return $?
     }
 
@@ -409,16 +405,8 @@ function deploy () {
         cd "$dir"
     fi
 
-    # initialize local variables:
-    #   ENVIRONMENT
-    #   STACK_NAME
-    #   RANDOM_STACK_NAME_SUFFIX
-    #   DEPENDS
-    #   LOGICAL_ID
-    #   TIMEOUT
-    #   OPTIONS
-    #   DISABLE_ROLLBACK
-    #   DELETE
+    # initialize local variables
+    # see detail: cfn/__init__.sh
     declare name
     for name in "${XSH_AWS_CFN__CFG_PROPERTY_NAMES[@]}"; do
         declare $name
