@@ -3,6 +3,7 @@
 #?   The nested templates and non-inline Lambda Functions can be deployed at once.
 #?
 #? Usage:
+#?   @deploy -g
 #?   @deploy
 #?     [-r REGION]
 #?     -t TEMPLATE
@@ -15,6 +16,10 @@
 #?     [<-o KEY=VALUE> ...]
 #?
 #? Options:
+#?   -g
+#?
+#?   Generate a blank config file as a start of your own.
+#?
 #?   [-r REGION]
 #?
 #?   Region name.
@@ -324,11 +329,14 @@ function deploy () {
     # main
     declare OPTIND OPTARG opt
 
-    declare region template config dir update stack_name
+    declare genconf region template config dir update stack_name
     declare -a region_opt options pass_options
 
-    while getopts r:t:c:p:P:C:DSs:o: opt; do
+    while getopts g:r:t:c:p:P:C:DSs:o: opt; do
         case $opt in
+            g)
+                genconf=1
+                ;;
             r)
                 region=${OPTARG:?}
                 region_opt=(-r "${OPTARG:?}")
@@ -362,6 +370,11 @@ function deploy () {
                 ;;
         esac
     done
+
+    if [[ $genconf -eq 1 ]]; then
+        xsh help -S CONFIG aws/cfn/deploy | sed 's/^  //'
+        return
+    fi
 
     if [[ -z $template ]]; then
         xsh log error "parameter TEMPLATE null or not set."
