@@ -421,7 +421,7 @@ function deploy () {
             :
         else
             xsh log error "${VERSION:-unversioned}: the version of config is not supported."
-            xsh log info "supported versions are: ${SUPPORTING_CONFIG_VERSIONS[*]:-undefined}"
+            xsh log info "supported versions are: ${XSH_AWS_CFN__CFG_SUPPORTED_VERSIONS[*]:-undefined}"
             return 255
         fi
 
