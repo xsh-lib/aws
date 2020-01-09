@@ -256,6 +256,10 @@
 #?
 function deploy () {
 
+    function __generate_blank_config__ () {
+        xsh help -S CONFIG aws/cfn/deploy | sed 's/^  //'
+    }
+
     #? STACK_NAME[-ENVIRONMENT[-RANDOM]]
     function __get_stack_name__ () {
 
@@ -371,7 +375,7 @@ function deploy () {
     done
 
     if [[ $genconf -eq 1 ]]; then
-        xsh help -S CONFIG aws/cfn/deploy | sed 's/^  //'
+        __generate_blank_config__
         return
     fi
 
