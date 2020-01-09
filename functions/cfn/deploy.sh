@@ -96,7 +96,7 @@
 #?   # Valid Characters: [a-zA-Z0-9-]
 #?   # Description:
 #?   #   Environment name, set whatever a name you like or leave it empty.
-#?   #   If set this, the STACK_NAME will look like: {STACK_NAME}-{ENVIRONMENT}
+#?   #   If set this, the full stack name will look like: {STACK_NAME}-{ENVIRONMENT}
 #?   # ---
 #?   # Example:
 #?   #   ENVIRONMENT=DEV
@@ -108,11 +108,11 @@
 #?   # Required: No
 #?   # Default: None
 #?   # Valid Values:
-#?   #   1: The STACK_NAME will look like:
+#?   #   1: Suffix stack name as:
 #?   #      {STACK_NAME}-{RANDOM_STACK_NAME_SUFFIX}
 #?   #      or: {STACK_NAME}-{ENVIRONMENT}-{RANDOM_STACK_NAME_SUFFIX}
-#?   #      Usually set this For test purpose.
-#?   #   0: No suffix.
+#?   #      Usually set this for test purpose.
+#?   #   0: No suffix on stack name.
 #?   # ---
 #?   # Example:
 #?   #   RANDOM_STACK_NAME_SUFFIX=1
@@ -166,7 +166,7 @@
 #?   #   )
 #?
 #?   LAMBDA=()
-#/
+#?
 #?   # LOGICAL_ID=[LogicalId]
 #?   #
 #?   # Required: No
@@ -205,9 +205,9 @@
 #?   #   <ParameterName>: The name of template parameters.
 #?   #   <ParameterValue>: The value for the parameter.
 #?   # Description:
-#?   #   The options will be converted to format
-#?   #   `ParameterKey=<ParameterName>,ParameterValue=<ParameterValue>` and
-#?   #   pass to `create-stack --parameters` directly.
+#?   #   The options here will be passed to command `create-stack --parameters`
+#?   #   after being translated to the syntax:
+#?   #   `ParameterKey=<ParameterName>,ParameterValue=<ParameterValue> ...`
 #?   #
 #?   #   Double quote the pairs which contain whitespaces or special characters.
 #?   #   Use `#` to comment out.
@@ -239,8 +239,7 @@
 #?   # Valid Value:
 #?   #   0: Do nothing.
 #?   #   1: Delete stack after deployment no matter succeeded or failed.
-#?   # Description:
-#?   #   Usually set this for testing purpose.
+#?   #      Usually set this for test purpose.
 #?   # ---
 #?   # Example:
 #?   #   DELETE=1
