@@ -332,7 +332,7 @@ function deploy () {
     declare genconf region template config dir update stack_name
     declare -a region_opt options pass_options
 
-    while getopts g:r:t:c:p:P:C:DSs:o: opt; do
+    while getopts gr:t:c:p:P:C:DSs:o: opt; do
         case $opt in
             g)
                 genconf=1
