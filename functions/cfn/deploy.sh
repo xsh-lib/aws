@@ -1,6 +1,6 @@
 #? Description:
 #?   Deploy AWS CloudFormation stack from template.
-#?   The nested templates can be deployed at once.
+#?   The nested templates and non-inline Lambda Functions can be deployed at once.
 #?
 #? Usage:
 #?   @deploy
@@ -27,7 +27,8 @@
 #?
 #?   [-c CONFIG]
 #?
-#?   Config file.
+#?   Config file using to deploy the template.
+#?   The syntax of the config is described in the `CONFIG` section.
 #?   The configs inside this file can be overridden by `-o` options.
 #?
 #?   [-p POLICY]
@@ -70,6 +71,176 @@
 #?   [<-o KEY=VALUE> ...]
 #?
 #?   The configs here take precedence over the config file.
+#?
+#? CONFIG:
+#?   # STACK_NAME=<StackName>
+#?   #
+#?   # Required: Yes
+#?   # Default: None
+#?   # Valid Characters: [a-zA-Z0-9-]
+#?   # ---
+#?   # Example:
+#?   #   STACK_NAME=MyStack
+#?
+#?   STACK_NAME=
+#?
+#?   # ENVIRONMENT=[Name]
+#?   #
+#?   # Required: No
+#?   # Default: None
+#?   # Valid Characters: [a-zA-Z0-9-]
+#?   # Description:
+#?   #   Environment name, set whatever a name you like or leave it empty.
+#?   #   If set this, the STACK_NAME will look like: {STACK_NAME}-{ENVIRONMENT}
+#?   # ---
+#?   # Example:
+#?   #   ENVIRONMENT=DEV
+#?
+#?   ENVIRONMENT=
+#?
+#?   # RANDOM_STACK_NAME_SUFFIX=[0 | 1]
+#?   #
+#?   # Required: No
+#?   # Default: None
+#?   # Valid Values:
+#?   #   1: The STACK_NAME will look like:
+#?   #      {STACK_NAME}-{RANDOM_STACK_NAME_SUFFIX}
+#?   #      or: {STACK_NAME}-{ENVIRONMENT}-{RANDOM_STACK_NAME_SUFFIX}
+#?   #      Usually set this For test purpose.
+#?   #   0: No suffix.
+#?   # ---
+#?   # Example:
+#?   #   RANDOM_STACK_NAME_SUFFIX=1
+#?
+#?   RANDOM_STACK_NAME_SUFFIX=
+#?
+#?   # DEPENDS=( <ParameterName>=<NestedTemplate> )
+#?   #
+#?   # Required: Yes if has nested template, otherwise No
+#?   # Default: None
+#?   # Syntax:
+#?   #   <ParameterName>: The name of template parameter that is referred at the
+#?   #                    value of nested template property `TemplateURL`.
+#?   #   <NestedTemplate>: A local path or a S3 URL starting with `s3://` or
+#?   #                     `https://` pointing to the nested template.
+#?   #                     The nested templates at local is going to be uploaded
+#?   #                     to S3 Bucket automatically during the deployment.
+#?   # Description:
+#?   #   Double quote the pairs which contain whitespaces or special characters.
+#?   #   Use `#` to comment out.
+#?   # ---
+#?   # Example:
+#?   #   DEPENDS=(
+#?   #       NestedTemplateFooURL=/path/to/nested/foo/stack.json
+#?   #       NestedTemplateBarURL=/path/to/nested/bar/stack.json
+#?   #   )
+#?
+#?   DEPENDS=()
+#?
+#?   # LAMBDA=( <S3BucketParameterName>:<S3KeyParameterName>=<LambdaFunction> )
+#?   #
+#?   # Required: Yes if has None-inline Lambda Function, otherwise No
+#?   # Default: None
+#?   # Syntax:
+#?   #   <S3BucketParameterName>: The name of template parameter that is referred
+#?   #                            at the value of Lambda property `Code.S3Bucket`.
+#?   #   <S3KeyParameterName>: The name of template parameter that is referred
+#?   #                         at the value of Lambda property `Code.S3Key`.
+#?   #   <LambdaFunction>: A local path or a S3 URL starting with `s3://` pointing
+#?   #                     to the Lambda Function.
+#?   #                     The Lambda Functions at local is going to be zipped and
+#?   #                     uploaded to S3 Bucket automatically during the deployment.
+#?   # Description:
+#?   #   Double quote the pairs which contain whitespaces or special characters.
+#?   #   Use `#` to comment out.
+#?   # ---
+#?   # Example:
+#?   #   DEPENDS=(
+#?   #       S3BucketForLambdaFoo:S3KeyForLambdaFoo=/path/to/LambdaFoo.py
+#?   #       S3BucketForLambdaBar:S3KeyForLambdaBar=s3://mybucket/LambdaBar.py
+#?   #   )
+#?
+#?   LAMBDA=()
+#/
+#?   # LOGICAL_ID=[LogicalId]
+#?   #
+#?   # Required: No
+#?   # Default: None
+#?   # Valid Value: Logical resource ID of AWS::EC2::Instance.
+#?   # Description:
+#?   #   If set this, will try to get the console output of the EC2 Instance
+#?   #   over CLI when the stack deployment goes wrong.
+#?   # ---
+#?   # Example:
+#?   #   LOGICAL_ID=WebServerInstance
+#?
+#?   LOGICAL_ID=
+#?
+#?   # TIMEOUT=[Minutes]
+#?   #
+#?   # Required: No
+#?   # Default: None
+#?   # Valid Value: Integer
+#?   # Description:
+#?   #   Amount of time that can pass for stack creation.
+#?   # ---
+#?   # Example:
+#?   #   TIMEOUT=5
+#?
+#?   TIMEOUT=
+#?
+#?   # OPTIONS=(
+#?   #     <ParameterName>=<ParameterValue>
+#?   # )
+#?   #
+#?   # Required: Yes if the template has required parameters, otherwise No
+#?   # Default: The parameters for nested templates and Lambda Functions which
+#?   #          were defined with `DEPENDS` and `LAMBDA`.
+#?   # Syntax:
+#?   #   <ParameterName>: The name of template parameters.
+#?   #   <ParameterValue>: The value for the parameter.
+#?   # Description:
+#?   #   The options will be converted to format
+#?   #   `ParameterKey=<ParameterName>,ParameterValue=<ParameterValue>` and
+#?   #   pass to `create-stack --parameters` directly.
+#?   #
+#?   #   Double quote the pairs which contain whitespaces or special characters.
+#?   #   Use `#` to comment out.
+#?   # ---
+#?   # Example:
+#?   #   OPTIONS=(
+#?   #       MyParam=MyValue
+#?   #   )
+#?
+#?   OPTIONS=()
+#?
+#?   # DISABLE_ROLLBACK=[0 | 1]
+#?   #
+#?   # Required: No
+#?   # Default: Depends on CloudFormation (Rollback on error by default)
+#?   # Valid Value:
+#?   #   0: Rollback stack on error.
+#?   #   1: Disable to rollback stack on error.
+#?   # ---
+#?   # Example:
+#?   #   DISABLE_ROLLBACK=1
+#?
+#?   DISABLE_ROLLBACK=
+#?
+#?   # DELETE=[0 | 1]
+#?   #
+#?   # Required: No
+#?   # Default: 0
+#?   # Valid Value:
+#?   #   0: Do nothing.
+#?   #   1: Delete stack after deployment no matter succeeded or failed.
+#?   # Description:
+#?   #   Usually set this for testing purpose.
+#?   # ---
+#?   # Example:
+#?   #   DELETE=1
+#?
+#?   DELETE=
 #?
 #? Example:
 #?   $ xsh aws/cfn/deploy -C /tmp/aws-cfn-vpn -t stack.json -c sandbox.conf
