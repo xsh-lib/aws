@@ -78,6 +78,15 @@
 #?   The configs here take precedence over the config file.
 #?
 #? CONFIG:
+#?   ## Environment variables used by xsh utility `aws/cfn/deploy`.
+#?   ## Reference: https://github.com/xsh-lib/aws
+#?
+#?   # Format version of this config file.
+#?   # Used to check the compatibility with xsh utility.
+#?   VERSION=0.1.0
+#?
+#?   ## Below configs can be overridden in command line while calling `aws/cfn/deploy`.
+#?
 #?   # STACK_NAME=<StackName>
 #?   #
 #?   # Required: Yes
@@ -256,6 +265,17 @@
 #?
 function deploy () {
 
+    declare SUPPORTING_CONFIG_VERSIONS=(
+        0.1.0
+    )
+
+    function __check_config_version__ () {
+        declare version=${1:?}
+        # the subshell with `test -n` must be double quoted
+        test -n "$(xsh /array/search SUPPORTING_CONFIG_VERSIONS "$version")"
+        return $?
+    }
+
     function __generate_blank_config__ () {
         xsh help -S CONFIG aws/cfn/deploy | sed 's/^  //'
     }
@@ -408,6 +428,14 @@ function deploy () {
     if [[ -n $config ]]; then
         xsh log info "applying config file options: $config..."
         source "$config"
+
+        if __check_config_version__ "${VERSION:-unversioned}"; then
+            :
+        else
+            xsh log error "${VERSION:-unversioned}: the version of config is not supported."
+            xsh log info "supported versions are: ${SUPPORTING_CONFIG_VERSIONS[*]:-undefined}"
+            return 255
+        fi
 
         xsh aws/cfn/cfg/echo
     fi
