@@ -4,9 +4,19 @@ xsh Library - AWS.
 
 About xsh and its libraries, check out [xsh document](https://github.com/alexzhangs/xsh)
 
-## Status
+## Requirements
 
-Currently this project is at version 0.x, and is unstable.
+Tested with `base 3.2` on macOS High Sierra, but should be working on Linux.
+
+This project is still at version 0.x, and should be considered immature.
+
+## Dependency
+
+This library depends on [xsh-lib/core](https://github.com/xsh-lib/core) which should be loaded first before to use this library.
+
+```bash
+xsh load xsh-lib/core
+```
 
 ## Installation
 
