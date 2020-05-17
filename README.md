@@ -6,7 +6,7 @@ About xsh and its libraries, check out [xsh document](https://github.com/alexzha
 
 ## Requirements
 
-Tested with `base 3.2` on macOS High Sierra, but should be working on Linux.
+Tested with `bash 3.2` on macOS High Sierra, but should be working on Linux.
 
 This project is still at version 0.x, and should be considered immature.
 
