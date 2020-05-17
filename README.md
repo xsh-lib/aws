@@ -6,17 +6,25 @@ About xsh and its libraries, check out [xsh document](https://github.com/alexzha
 
 ## Requirements
 
-Tested with `bash 3.2` on macOS High Sierra, but should be working on Linux.
+1. bash
+
+    Tested with `bash 3.2` on macOS High Sierra, but should be working on Linux.
+
+1. awscli
+
+    Tested with `awscli 1.17.4`.
 
 This project is still at version 0.x, and should be considered immature.
 
 ## Dependency
 
-This library depends on [xsh-lib/core](https://github.com/xsh-lib/core) which should be loaded first before to use this library.
+1. xsh-lib/core
 
-```bash
-xsh load xsh-lib/core
-```
+    This library depends on [xsh-lib/core](https://github.com/xsh-lib/core) which should be loaded first before to use this library.
+
+    ```bash
+    xsh load xsh-lib/core
+    ```
 
 ## Installation
 
