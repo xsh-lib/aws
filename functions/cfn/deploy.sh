@@ -302,10 +302,11 @@ function deploy () {
     }
 
     function __get_bucket_name__ () {
+        declare stack_name=${1:?}
         if [[ -n $ENVIRONMENT ]]; then
-            xsh /string/lower "${STACK_NAME:?}-${ENVIRONMENT}-cfn-templates"
+            xsh /string/lower "${stack_name:?}-${ENVIRONMENT}-cfn-templates"
         else
-            xsh /string/lower "${STACK_NAME:?}-cfn-templates"
+            xsh /string/lower "${stack_name:?}-cfn-templates"
         fi
     }
 
