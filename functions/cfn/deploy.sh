@@ -476,8 +476,6 @@ function deploy () {
         fi
     fi
 
-    bucket_name=$(__get_bucket_name__ "$stack_name")
-
     declare item depended_uri key value
     for item in "${DEPENDS[@]}"; do
         key=${item%%=*}
