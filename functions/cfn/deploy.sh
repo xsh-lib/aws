@@ -476,7 +476,6 @@ function deploy () {
         fi
     fi
 
-    # bucket name
     bucket_name=$(__get_bucket_name__ "$stack_name")
 
     declare item depended_uri key value
