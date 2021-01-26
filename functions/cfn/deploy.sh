@@ -479,6 +479,9 @@ function deploy () {
 
     declare item depended_uri key value
     for item in "${DEPENDS[@]}"; do
+        if [[ -z $item ]]; then
+            continue
+        fi
         key=${item%%=*}
         value=${item#*=}
 
@@ -503,6 +506,9 @@ function deploy () {
     done
 
     for item in "${LAMBDA[@]}"; do
+        if [[ -z $item ]]; then
+            continue
+        fi
         key=${item%%=*}
         value=${item#*=}
 
@@ -529,6 +535,9 @@ function deploy () {
 
     # build downstream command options
     for item in "${OPTIONS[@]}"; do
+        if [[ -z $item ]]; then
+            continue
+        fi
         pass_options+=( -o "$item" )
     done
 

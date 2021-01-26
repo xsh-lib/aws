@@ -71,10 +71,12 @@ function create () {
                 ;;
             o)
                 # `KEY=VALUE` to `ParameterKey=KEY,ParameterValue=VALUE`
-                OPTARG=${OPTARG/=/,ParameterValue=}
-                OPTARG=${OPTARG/#/ParameterKey=}
+                if [[ -n $OPTARG ]]; then
+                    OPTARG=${OPTARG/=/,ParameterValue=}
+                    OPTARG=${OPTARG/#/ParameterKey=}
 
-                options+=( "$OPTARG" )
+                    options+=( "$OPTARG" )
+                fi
                 ;;
             *)
                 return 255
