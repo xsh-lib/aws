@@ -18,6 +18,7 @@
 #?   [-m MODE]
 #?
 #?   umask mode for the FILE.
+#?   Default umask mode is '077', the corresponding *file* permission is '600'.
 #?
 #?   NAME
 #?
@@ -29,7 +30,7 @@
 function create () {
     declare OPTIND OPTARG opt
     declare -a region_opt
-    declare file mode
+    declare file mode=077
 
     while getopts r:f:m: opt; do
         case $opt in
@@ -51,7 +52,7 @@ function create () {
 
     declare key
     key=$(aws "${region_opt[@]}" --query "KeyMaterial" --output text \
-                     ec2 create-key-pair --key-name "${1:?}")
+              ec2 create-key-pair --key-name "${1:?}")
     printf "%s\n" "$key"
 
     if [[ -n $file ]]; then
