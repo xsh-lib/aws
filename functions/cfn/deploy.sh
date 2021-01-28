@@ -406,13 +406,6 @@ function deploy () {
         cd "$dir"
     fi
 
-    # initialize local variables
-    # see detail: cfn/__init__.sh
-    declare name
-    for name in "${XSH_AWS_CFN__CFG_PROPERTY_NAMES[@]}"; do
-        declare $name
-    done
-
     # config
     if [[ -n $config ]]; then
         xsh log info "applying config file options: $config..."
