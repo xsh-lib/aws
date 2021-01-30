@@ -79,8 +79,7 @@ function desc () {
                 region_opt=(--region "${OPTARG:?}")
                 ;;
             f)
-                filters+=("Name=${OPTARG%%=*}")
-                filters+=("Values=${OPTARG#*=}")
+                filters+=("Name=${OPTARG%%=*},Values=${OPTARG#*=}")
                 ;;
             q)
                 # the selector `|[]` strips the outer layer of `[]` in the result
@@ -97,7 +96,7 @@ function desc () {
     done
 
     if [[ ${#filters} -gt 0 ]]; then
-        filters=(--filters "$(IFS=$','; echo "${filters[*]}")")
+        filters=(--filters "${filters[@]}")
     fi
 
     if [[ ${#instance_ids} -gt 0 ]]; then

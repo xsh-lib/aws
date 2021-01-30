@@ -57,8 +57,7 @@ function desc () {
                 logical_id=$OPTARG
                 ;;
             f)
-                filters+=("Name=${OPTARG%%=*}")
-                filters+=("Values=${OPTARG#*=}")
+                filters+=("Name=${OPTARG%%=*},Values=${OPTARG#*=}")
                 ;;
             q)
                 query=(--query "$OPTARG")
@@ -73,7 +72,7 @@ function desc () {
     done
 
     if [[ ${#filters} -gt 0 ]]; then
-        filters=(--filters "$(IFS=$','; echo "${filters[*]}")")
+        filters=(--filters "${filters[@]}")
     fi
     
     aws "${region_opt[@]}" "${query[@]}" "${output[@]}" \
