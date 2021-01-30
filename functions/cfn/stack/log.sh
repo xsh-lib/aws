@@ -20,7 +20,7 @@ function log () {
     while getopts r:ws:l: opt; do
         case $opt in
             r)
-                region_opt=(--region "${OPTARG:?}")
+                region_opt=(-r "${OPTARG:?}")
                 ;;
             w)
                 wait=1
