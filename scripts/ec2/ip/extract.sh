@@ -34,11 +34,13 @@ set -eo pipefail
 function extract () {
     declare OPTIND OPTARG opt
 
+    declare -a region_opt
     declare region ip_attr=PublicIpAddress store
     while getopts r:i opt; do
         case $opt in
             r)
                 region=$OPTARG
+                region_opt=(-r "${OPTARG:?}")
                 ;;
             i)
                 ip_attr=PrivateIpAddress
@@ -76,7 +78,7 @@ function extract () {
     # filter out the instances without a tag `Name` or without a value for tag `Name`
     # the `[]` around the tag is stripped
     # outputs at each line: [KeyName]    (Public|Private)IpAddress    Tags['Name']
-    ips=( $(xsh aws/ec2/desc -f instance-state-name=pending,running,stopping,stopped \
+    ips=( $(xsh aws/ec2/desc "${region_opt[@]}" -f instance-state-name=pending,running,stopping,stopped \
               -f "tag:Name=*" \
               -q "${!query}" \
               -o text) )
