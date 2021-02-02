@@ -55,8 +55,8 @@ function create () {
               ec2 create-key-pair --key-name "${1:?}")
     printf "%s\n" "$key"
 
-    if [[ -n $file ]]; then
-        if [[ -e $file ]]; then
+    if [[ -n $key && $file ]]; then
+        if [[ -s $file ]]; then
             xsh log error "file already exists: $file"
             return 255
         fi
