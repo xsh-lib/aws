@@ -440,6 +440,15 @@ function deploy () {
     declare bucket_name
     bucket_name=$(__get_bucket_name__ "$stack_name" "$region")
 
+    declare bucket_creating bucket_created
+    xsh aws/s3/bucket/exist "$bucket_name"
+    # 0: Exists
+    # 3: Exists but not accessable
+    # 4: Dosn't exist
+    if [[ $? -eq 4 ]]; then
+        bucket_creating=1
+    fi
+
     # the prefix of s3 object key for template
     declare prekey
     prekey=$(date +%Y%m%d-%H%M%S)
@@ -453,6 +462,8 @@ function deploy () {
               "$template" \
               "$region")
 
+    bucket_created=$bucket_creating
+    
     # trap clean commands
     if [[ $DELETE -eq 1 ]]; then
         x-trap-return -F $FUNCNAME \
@@ -464,9 +475,11 @@ function deploy () {
                           return
                        fi"
 
-        if [[ $XSH_S3_BUCKET_CREATED -eq 1 ]]; then
-            x-trap-return -F $FUNCNAME -a "xsh aws/s3/bucket/delete \"${bucket:?}\""
+        if [[ $bucket_created -eq 1 ]]; then
+            # delete the whole s3 bucket on return
+            x-trap-return -F $FUNCNAME -a "xsh aws/s3/bucket/delete \"${bucket_name:?}\""
         else
+            # delete the individual s3 object on return
             x-trap-return -F $FUNCNAME -a "aws s3 rm \"$(xsh aws/s3/uri/translate -s s3 "$uri")\""
         fi
     fi
@@ -489,18 +502,16 @@ function deploy () {
                            "$region")
 
         # trap clean commands
-        if [[ $DELETE -eq 1 ]]; then
-            if [[ $XSH_S3_BUCKET_CREATED -eq 1 ]]; then
-                x-trap-return -F $FUNCNAME -a "xsh aws/s3/bucket/delete \"${bucket:?}\""
-            else
-                x-trap-return -F $FUNCNAME -a "aws s3 rm \"$(xsh aws/s3/uri/translate -s s3 "$depended_uri")\""
-            fi
+        if [[ $DELETE -eq 1 && $bucket_created -ne 1 ]]; then
+            # delete the individual s3 object on return
+            x-trap-return -F $FUNCNAME -a "aws s3 rm \"$(xsh aws/s3/uri/translate -s s3 "$depended_uri")\""
         fi
 
         OPTIONS+=( "${key:?}=${depended_uri:?}" )
     done
 
     # upload lambda function
+    declare param_name_s3bucket param_name_s3key zipfile s3key
     for item in "${LAMBDA[@]}"; do
         if [[ -z $item ]]; then
             continue
@@ -511,7 +522,6 @@ function deploy () {
         param_name_s3bucket=${key%%:*}
         param_name_s3key=${key#*:}
 
-        declare zipfile
         # zip local lambda if not zipped
         if file "$value" | grep -q 'Zip archive data'; then
             zipfile=$value
@@ -520,10 +530,16 @@ function deploy () {
             zip "$zipfile" "$value"
         fi
 
-        declare s3key=${prekey:?}/$(basename "$zipfile")
+        s3key=${prekey:?}/$(basename "$zipfile")
         # upload depended lambda
         xsh log info "uploading depended lambda: $zipfile"
-        xsh aws/s3/upload "${region_opt[@]}" -b "$bucket_name" -k "$s3key" "$zipfile"
+        uri=$(xsh aws/s3/upload "${region_opt[@]}" -b "$bucket_name" -k "$s3key" "$zipfile")
+
+        # trap clean commands
+        if [[ $DELETE -eq 1 && $bucket_created -ne 1 ]]; then
+            # delete the individual s3 object on return
+            x-trap-return -F $FUNCNAME -a "aws s3 rm \"$(xsh aws/s3/uri/translate -s s3 "$uri")\""
+        fi
 
         OPTIONS+=( "${param_name_s3bucket:?}=${bucket_name:?}" )
         OPTIONS+=( "${param_name_s3key:?}=${s3key:?}" )
