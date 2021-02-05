@@ -303,11 +303,12 @@ function deploy () {
 
     function __get_bucket_name__ () {
         declare stack_name=${1:?}
-        if [[ -n $ENVIRONMENT ]]; then
-            xsh /string/lower "${stack_name:?}-${ENVIRONMENT}-cfn-templates"
-        else
-            xsh /string/lower "${stack_name:?}-cfn-templates"
+        declare region=$2
+        if [[ -z $region ]]; then
+            # get region according to profile
+            region=$(aws configure get default.region)
         fi
+        xsh /string/lower "${stack_name:?}-${region:?}-cfn-templates"
     }
 
     #? upload the template to the bucket with a default key
@@ -437,7 +438,7 @@ function deploy () {
 
     # bucket name
     declare bucket_name
-    bucket_name=$(__get_bucket_name__ "$stack_name")
+    bucket_name=$(__get_bucket_name__ "$stack_name" "$region")
 
     # the prefix of s3 object key for template
     declare prekey
@@ -470,6 +471,7 @@ function deploy () {
         fi
     fi
 
+    # upload nested template
     declare item depended_uri key value
     for item in "${DEPENDS[@]}"; do
         if [[ -z $item ]]; then
@@ -498,6 +500,7 @@ function deploy () {
         OPTIONS+=( "${key:?}=${depended_uri:?}" )
     done
 
+    # upload lambda function
     for item in "${LAMBDA[@]}"; do
         if [[ -z $item ]]; then
             continue
