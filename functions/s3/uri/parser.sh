@@ -60,7 +60,7 @@
 #?
 function parser () {
     # get the last parameter
-    declare uri=${@:(-1)}
+    declare uri=${!#}
 
     #? mybucket.s3-ap-northeast-1.amazsonaws.com
     #? mybucket.s3.cn-north-1.amazsonaws.com.cn
