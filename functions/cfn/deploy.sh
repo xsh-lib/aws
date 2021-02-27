@@ -440,12 +440,12 @@ function deploy () {
     declare bucket_name
     bucket_name=$(__get_bucket_name__ "$stack_name" "$region")
 
-    declare bucket_creating bucket_created
-    xsh aws/s3/bucket/exist "$bucket_name"
+    declare rc=0 bucket_creating bucket_created
+    xsh aws/s3/bucket/exist "$bucket_name" || rc=$?
     # 0: Exists
     # 3: Exists but not accessable
     # 4: Dosn't exist
-    if [[ $? -eq 4 ]]; then
+    if [[ $rc -eq 4 ]]; then
         bucket_creating=1
     fi
 
