@@ -1,9 +1,9 @@
 [![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors)
 
-[![GitHub tag](https://img.shields.io/github/tag/alexzhangs/xsh.svg?style=flat-square)](https://github.com/alexzhangs/xsh/) [![GitHub](https://img.shields.io/github/license/alexzhangs/xsh.svg?style=flat-square)](https://github.com/alexzhangs/xsh/) [![GitHub last commit](https://img.shields.io/github/last-commit/alexzhangs/xsh.svg?style=flat-square)](https://github.com/alexzhangs/xsh/)
+[![GitHub tag](https://img.shields.io/github/tag/xsh-lib/aws.svg?style=flat-square)](https://github.com/xsh-lib/aws/) [![GitHub](https://img.shields.io/github/license/xsh-lib/aws.svg?style=flat-square)](https://github.com/xsh-lib/aws/) [![GitHub last commit](https://img.shields.io/github/last-commit/xsh-lib/aws.svg?style=flat-square)](https://github.com/xsh-lib/aws/)
 
-[![GitHub issues](https://img.shields.io/github/issues/alexzhangs/xsh.svg?style=flat-square)](https://github.com/alexzhangs/xsh/)
-[![GitHub pull requests](https://img.shields.io/github/issues-pr/alexzhangs/xsh.svg?style=flat-square)](https://github.com/alexzhangs/xsh/)
+[![GitHub issues](https://img.shields.io/github/issues/xsh-lib/aws.svg?style=flat-square)](https://github.com/xsh-lib/aws/)
+[![GitHub pull requests](https://img.shields.io/github/issues-pr/xsh-lib/aws.svg?style=flat-square)](https://github.com/xsh-lib/aws/)
 
 # xsh-lib/aws
 
