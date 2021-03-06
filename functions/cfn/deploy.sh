@@ -256,8 +256,8 @@
 #?   DELETE=
 #?
 #? Example:
-#?   $ xsh aws/cfn/deploy -C /tmp/aws-cfn-vpn -t stack.json -c sandbox.conf
-#?   $ xsh aws/cfn/deploy -C /tmp/aws-cfn-vpn -t stack.json -c sandbox.conf -o DELETE=0 -o OPTIONS=KeyPairName=mykey
+#?   $ @deploy -C /tmp/aws-cfn-vpn -t stack.json -c sandbox.conf
+#?   $ @deploy -C /tmp/aws-cfn-vpn -t stack.json -c sandbox.conf -o DELETE=0 -o OPTIONS=KeyPairName=mykey
 #?
 #? @xsh import /trap/return
 #? @xsh /trap/err -eE
