@@ -26,7 +26,7 @@ function pip () {
     declare python_version=$(python --version 2>&1 | cut -c8-10)
 
     # get the specific version of pip
-    curl-pip "https://bootstrap.pypa.io/${python_version}/get-pip.py"
+    curl-pip "https://bootstrap.pypa.io/pip/${python_version}/get-pip.py"
 
     # 22: maybe HTTP code 404 returned
     if [[ $? -eq 22 ]]; then
