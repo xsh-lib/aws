@@ -11,7 +11,7 @@
 #? @subshell
 #?
 function activate () {
-    declare profile=$1 property n
+    declare profile=$1
 
     if [[ -z ${profile} ]]; then
         xsh log error "profile: parameter null or not set."
@@ -24,11 +24,11 @@ function activate () {
     fi
 
     printf "activating profile: ${profile}\n"
-    n=0
+    declare property n=0
     for property in $(xsh aws/cfg/get "${profile}" \
                           | column -s, -t \
                           | awk '{$1=""; print}'); do
-        aws configure set "default.${AWS_CFG_PROPERTIES[n]#*.}" "${property}"
+        aws configure set "default.${XSH_AWS_CFG_PROPERTIES[n]#*.}" "${property}"
         n=$((n+1))
     done
     xsh aws/cfg/list

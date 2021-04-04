@@ -13,7 +13,7 @@ function list () {
         "${XSH_AWS_CFG_PROPERTIES[@]}"
     )
 
-    declare i=1 property
+    declare i=1 property sensitive
     for property in "${properties[@]}"; do
         if [[ ${property#*.} == 'aws_secret_access_key' ]]; then
             sensitive=$i
@@ -44,7 +44,7 @@ function list () {
                 | xsh /file/mask -d, -f4 -c1-36 -x
         } | column -s, -t)
 
-    declare pattern sensitive
+    declare pattern
     pattern=$(
         echo "${result}" \
             | awk -v secret_field=${sensitive} \
