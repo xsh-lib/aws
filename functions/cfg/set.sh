@@ -6,25 +6,21 @@
 #?   PROPERTY  Property values, in the same sequence that output by cfg/get
 #?
 #? Output:
-#?   Updated profile.
+#?   None.
 #?
 #? @xsh /trap/err -eE
 #? @subshell
 #?
 function set () {
     declare name=$1
-    declare base_dir property n
-
-    base_dir=${XSH_HOME}/lib/aws/functions/cfg  # TODO: use varaible instead
-    . "${base_dir}/config.conf"
 
     if [[ -z ${name} ]]; then
         xsh log error "profile: parameter null or not set."
         return 255
     fi
 
-    n=2  # profile properties started at $2
-    for property in "${AWS_CFG_PROPERTIES[@]}"; do
+    declare n=2 property  # profile properties started at $2
+    for property in "${XSH_AWS_CFG_PROPERTIES[@]}"; do
         if [[ -z ${property#*.} || -z ${!n} ]]; then
             continue
         fi
@@ -32,6 +28,4 @@ function set () {
         aws configure set "${property#*.}" "${!n}" --profile "${name}"
         n=$((n+1))
     done
-
-    xsh aws/cfg/list
 }

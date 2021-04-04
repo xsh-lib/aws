@@ -17,15 +17,15 @@ function get () {
         declare property varname
 
         # output profile name as first field
-        varname=${AWS_CFG_CONFIG_ENV_PREFIX}SECTIONS_${profile}
+        varname=${XSH_AWS_CFG_CONFIG_ENV_PREFIX}SECTIONS_${profile}
 
         if [[ ! ${!varname+x} ]]; then  # the variable was not declared
-            varname=${AWS_CFG_CONFIG_ENV_PREFIX}SECTIONS_${profile#profile_}
+            varname=${XSH_AWS_CFG_CONFIG_ENV_PREFIX}SECTIONS_${profile#profile_}
         fi
         printf "%s" "${!varname#profile }"
 
         # output rest of properties as fields
-        for property in "${AWS_CFG_PROPERTIES[@]}"; do
+        for property in "${XSH_AWS_CFG_PROPERTIES[@]}"; do
             varname=${property%.*}_SECTIONS_${profile}_VALUES_${property#*.}
 
             if [[ ! ${!varname+x} ]]; then  # the variable was not declared
@@ -38,18 +38,13 @@ function get () {
         printf "\n"
     }
 
-    declare name
-    declare profile varname base_dir
+    declare name=$1
 
-    name=$1
+    xsh /ini/parser -a -p "${XSH_AWS_CFG_CONFIG_ENV_PREFIX}" "${XSH_AWS_CFG_CONFIG}"
+    xsh /ini/parser -a -p "${XSH_AWS_CFG_CREDENTIALS_ENV_PREFIX}" "${XSH_AWS_CFG_CREDENTIALS}"
 
-    base_dir=${XSH_HOME}/lib/aws/functions/cfg  # TODO: use varaible instead
-    . "${base_dir}/config.conf"
-
-    xsh /ini/parser -a -p "${AWS_CFG_CONFIG_ENV_PREFIX}" "${AWS_CFG_CONFIG}"
-    xsh /ini/parser -a -p "${AWS_CFG_CREDENTIALS_ENV_PREFIX}" "${AWS_CFG_CREDENTIALS}"
-
-    varname=${AWS_CFG_CONFIG_ENV_PREFIX}SECTIONS[@]
+    declare varname=${XSH_AWS_CFG_CONFIG_ENV_PREFIX}SECTIONS[@] \
+            profile
 
     for profile in "${!varname}"; do
         if [[ -n ${name} ]]; then

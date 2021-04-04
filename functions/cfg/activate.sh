@@ -11,11 +11,7 @@
 #? @subshell
 #?
 function activate () {
-    declare profile=$1
-    declare base_dir property n
-
-    base_dir=${XSH_HOME}/lib/aws/functions/cfg  # TODO: use varaible instead
-    . "${base_dir}/config.conf"
+    declare profile=$1 property n
 
     if [[ -z ${profile} ]]; then
         xsh log error "profile: parameter null or not set."

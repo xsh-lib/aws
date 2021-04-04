@@ -8,18 +8,12 @@
 #? @subshell
 #?
 function list () {
-    declare result pattern
-    declare i sep str properties property sensitive base_dir
-
-    base_dir=${XSH_HOME}/lib/aws/functions/cfg  # TODO: use varaible instead
-    . "${base_dir}/config.conf"
-
-    properties=(
+    declare properties=(
         "profile"
-        "${AWS_CFG_PROPERTIES[@]}"
+        "${XSH_AWS_CFG_PROPERTIES[@]}"
     )
 
-    i=1
+    declare i=1 property
     for property in "${properties[@]}"; do
         if [[ ${property#*.} == 'aws_secret_access_key' ]]; then
             sensitive=$i
@@ -27,6 +21,7 @@ function list () {
         i=$((i+1))
     done
 
+    declare result sep str
     result=$(
         {
             sep=""
@@ -49,6 +44,7 @@ function list () {
                 | xsh /file/mask -d, -f4 -c1-36 -x
         } | column -s, -t)
 
+    declare pattern sensitive
     pattern=$(
         echo "${result}" \
             | awk -v secret_field=${sensitive} \
