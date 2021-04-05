@@ -10,7 +10,7 @@
 function list () {
     declare properties=(
         "profile"
-        "${XSH_AWS_CFG_PROPERTIES[@]}"
+        "${XSH_AWS_CFG_PROPERTIES[@]:?}"
     )
 
     declare i=1 property sensitive

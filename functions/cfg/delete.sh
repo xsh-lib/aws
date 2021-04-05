@@ -24,7 +24,11 @@ function delete () {
         fi
 
         printf "deleting profile: ${profile}\n"
-        xsh /util/sed-regex-inplace "/^\[profile ${profile}\]$/,/^\[.+\]$/{/^\[profile ${profile}\]$/d; /^[^[]+$/d;}" "${XSH_AWS_CFG_CONFIG}"
-        xsh /util/sed-regex-inplace "/^\[${profile}\]$/,/^\[.+\]$/{/^\[${profile}\]$/d; /^[^[]+$/d;}" "${XSH_AWS_CFG_CREDENTIALS}"
+        xsh /util/sed-regex-inplace \
+            "/^\[profile ${profile}\]$/,/^\[.+\]$/{/^\[profile ${profile}\]$/d; /^[^[]+$/d;}" \
+            "${XSH_AWS_CFG_CONFIG:?}"
+        xsh /util/sed-regex-inplace \
+            "/^\[${profile}\]$/,/^\[.+\]$/{/^\[${profile}\]$/d; /^[^[]+$/d;}" \
+            "${XSH_AWS_CFG_CREDENTIALS:?}"
     done
 }

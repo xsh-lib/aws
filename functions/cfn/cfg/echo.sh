@@ -1,6 +1,6 @@
 #? Description:
 #?   Print out the AWS CloudFormation Configuration Properties, which are
-#?   defined by XSH_AWS_CFN__CFG_PROPERTIES in cfn/__init__.sh.
+#?   defined by `XSH_AWS_CFN__CFG_PROPERTIES` in `cfn/__init__.sh`.
 #?
 #? Usage:
 #?   @echo
@@ -8,7 +8,7 @@
 function echo () {
     declare item name
 
-    for item in "${XSH_AWS_CFN__CFG_PROPERTIES[@]}"; do
+    for item in "${XSH_AWS_CFN__CFG_PROPERTIES[@]:?}"; do
         name=${item%%=*}
         if xsh /array/is-array "${name}"; then
             name="${name}[*]"

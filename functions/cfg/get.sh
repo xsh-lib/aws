@@ -25,7 +25,7 @@ function get () {
         printf "%s" "${!varname#profile }"
 
         # output rest of properties as fields
-        for property in "${XSH_AWS_CFG_PROPERTIES[@]}"; do
+        for property in "${XSH_AWS_CFG_PROPERTIES[@]:?}"; do
             varname=${property%.*}_SECTIONS_${profile}_VALUES_${property#*.}
 
             if [[ ! ${!varname+x} ]]; then  # the variable was not declared
@@ -40,8 +40,8 @@ function get () {
 
     declare name=$1
 
-    xsh /ini/parser -a -p "${XSH_AWS_CFG_CONFIG_ENV_PREFIX}" "${XSH_AWS_CFG_CONFIG}"
-    xsh /ini/parser -a -p "${XSH_AWS_CFG_CREDENTIALS_ENV_PREFIX}" "${XSH_AWS_CFG_CREDENTIALS}"
+    xsh /ini/parser -a -p "${XSH_AWS_CFG_CONFIG_ENV_PREFIX}" "${XSH_AWS_CFG_CONFIG:?}"
+    xsh /ini/parser -a -p "${XSH_AWS_CFG_CREDENTIALS_ENV_PREFIX}" "${XSH_AWS_CFG_CREDENTIALS:?}"
 
     declare varname=${XSH_AWS_CFG_CONFIG_ENV_PREFIX}SECTIONS[@] \
             profile

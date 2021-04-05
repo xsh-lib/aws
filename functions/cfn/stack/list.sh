@@ -27,6 +27,6 @@ function list () {
 
     # list stacks
     aws "${region_opt[@]}" cloudformation list-stacks \
-        --stack-status-filter "${XSH_AWS_CFN__STACK_STATUS[@]}"
+        --stack-status-filter "${XSH_AWS_CFN__STACK_STATUS[@]:?}"
 }
 

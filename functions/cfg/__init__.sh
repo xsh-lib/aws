@@ -13,8 +13,8 @@
 
 
 export XSH_AWS_CFG_DIR=~/.aws
-export XSH_AWS_CFG_CONFIG=${XSH_AWS_CFG_DIR}/config
-export XSH_AWS_CFG_CREDENTIALS=${XSH_AWS_CFG_DIR}/credentials
+export XSH_AWS_CFG_CONFIG=${XSH_AWS_CFG_DIR:?}/config
+export XSH_AWS_CFG_CREDENTIALS=${XSH_AWS_CFG_DIR:?}/credentials
 
 export XSH_AWS_CFG_CONFIG_ENV_PREFIX=config_
 export XSH_AWS_CFG_CREDENTIALS_ENV_PREFIX=credentials_
