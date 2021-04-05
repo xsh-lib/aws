@@ -3,15 +3,21 @@
 #?
 #? This file is sourced while importing any function utility, right before the
 #? function utility was sourced.
+#?
+#? All variables except those of Array should be exported in order to be
+#? available for the sub-processes.
+#?
+#? The variables of Array can't be exported to the sub-processes due to the
+#? limitation of Bash.
 #? -----------------------------------------------------------------------------
 
 
-XSH_AWS_CFG_DIR=~/.aws
-XSH_AWS_CFG_CONFIG=${XSH_AWS_CFG_DIR}/config
-XSH_AWS_CFG_CREDENTIALS=${XSH_AWS_CFG_DIR}/credentials
+export XSH_AWS_CFG_DIR=~/.aws
+export XSH_AWS_CFG_CONFIG=${XSH_AWS_CFG_DIR}/config
+export XSH_AWS_CFG_CREDENTIALS=${XSH_AWS_CFG_DIR}/credentials
 
-XSH_AWS_CFG_CONFIG_ENV_PREFIX=config_
-XSH_AWS_CFG_CREDENTIALS_ENV_PREFIX=credentials_
+export XSH_AWS_CFG_CONFIG_ENV_PREFIX=config_
+export XSH_AWS_CFG_CREDENTIALS_ENV_PREFIX=credentials_
 
 XSH_AWS_CFG_PROPERTIES=(
     config.region

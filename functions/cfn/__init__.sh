@@ -3,6 +3,12 @@
 #?
 #? This file is sourced while importing any function utility, right before the
 #? function utility was sourced.
+#?
+#? All variables except those of Array should be exported in order to be
+#? available for the sub-processes.
+#?
+#? The variables of Array can't be exported to the sub-processes due to the
+#? limitation of Bash.
 #? -----------------------------------------------------------------------------
 
 
@@ -65,14 +71,14 @@ XSH_AWS_CFN__STACK_STATUS=(
 declare i
 for i in "${!XSH_AWS_CFN__STACK_STATUS[@]}"; do
     if [[ $i -lt 100 ]]; then
-        XSH_AWS_CFN__STACK_MIDDLE_STATUS[$i]=${XSH_AWS_CFN__STACK_STATUS[$i]}
+        XSH_AWS_CFN__STACK_MIDDLE_STATUS[i]=${XSH_AWS_CFN__STACK_STATUS[i]}
     else
-        XSH_AWS_CFN__STACK_FINAL_STATUS[$i]=${XSH_AWS_CFN__STACK_STATUS[$i]}
+        XSH_AWS_CFN__STACK_FINAL_STATUS[i]=${XSH_AWS_CFN__STACK_STATUS[i]}
 
         if [[ $((i % 2)) -eq 0 ]]; then
-            XSH_AWS_CFN__STACK_SUCCESS_STATUS[$i]=${XSH_AWS_CFN__STACK_STATUS[$i]}
+            XSH_AWS_CFN__STACK_SUCCESS_STATUS[i]=${XSH_AWS_CFN__STACK_STATUS[i]}
         else
-            XSH_AWS_CFN__STACK_FAILURE_STATUS[$i]=${XSH_AWS_CFN__STACK_STATUS[$i]}
+            XSH_AWS_CFN__STACK_FAILURE_STATUS[i]=${XSH_AWS_CFN__STACK_STATUS[i]}
         fi
     fi
 done
