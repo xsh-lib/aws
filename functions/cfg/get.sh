@@ -13,8 +13,8 @@
 function get () {
 
     function __get () {
-        declare profile=$1
-        declare property varname
+        declare profile=$1 \
+                property varname
 
         # output profile name as first field
         varname=${XSH_AWS_CFG_CONFIG_ENV_PREFIX}SECTIONS_${profile}

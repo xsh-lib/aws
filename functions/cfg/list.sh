@@ -8,7 +8,7 @@
 #? @subshell
 #?
 function list () {
-    declare properties=(
+    declare -a properties=(
         "profile"
         "${XSH_AWS_CFG_PROPERTIES[@]:?}"
     )
