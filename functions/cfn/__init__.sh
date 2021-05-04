@@ -76,7 +76,7 @@ XSH_AWS_CFN__STACK_STATUS=(
 #?   XSH_AWS_CFN__STACK_FAILURE_STATUS
 #?
 declare i
-for i in "${!XSH_AWS_CFN__STACK_STATUS[@]:?}"; do
+for i in "${!XSH_AWS_CFN__STACK_STATUS[@]}"; do
     if [[ $i -lt 100 ]]; then
         XSH_AWS_CFN__STACK_MIDDLE_STATUS[i]=${XSH_AWS_CFN__STACK_STATUS[i]:?}
     else
