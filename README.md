@@ -1,9 +1,10 @@
-[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors)
+[![GitHub tag](https://img.shields.io/github/v/tag/xsh-lib/aws?sort=date)](https://github.com/xsh-lib/aws/tags)
+[![GitHub](https://img.shields.io/github/license/xsh-lib/aws.svg?style=flat-square)](https://github.com/xsh-lib/aws/)
+[![GitHub last commit](https://img.shields.io/github/last-commit/xsh-lib/aws.svg?style=flat-square)](https://github.com/xsh-lib/aws/commits/master)
 
-[![GitHub tag](https://img.shields.io/github/tag/xsh-lib/aws.svg?style=flat-square)](https://github.com/xsh-lib/aws/) [![GitHub](https://img.shields.io/github/license/xsh-lib/aws.svg?style=flat-square)](https://github.com/xsh-lib/aws/) [![GitHub last commit](https://img.shields.io/github/last-commit/xsh-lib/aws.svg?style=flat-square)](https://github.com/xsh-lib/aws/)
-
-[![GitHub issues](https://img.shields.io/github/issues/xsh-lib/aws.svg?style=flat-square)](https://github.com/xsh-lib/aws/)
-[![GitHub pull requests](https://img.shields.io/github/issues-pr/xsh-lib/aws.svg?style=flat-square)](https://github.com/xsh-lib/aws/)
+[![Travis (.com)](https://img.shields.io/travis/com/xsh-lib/aws.svg?style=flat-square)](https://travis-ci.com/xsh-lib/aws)
+[![GitHub issues](https://img.shields.io/github/issues/xsh-lib/aws.svg?style=flat-square)](https://github.com/xsh-lib/aws/issues)
+[![GitHub pull requests](https://img.shields.io/github/issues-pr/xsh-lib/aws.svg?style=flat-square)](https://github.com/xsh-lib/aws/pulls)
 
 # xsh-lib/aws
 
@@ -15,7 +16,9 @@ About xsh and its libraries, check out [xsh document](https://github.com/alexzha
 
 1. bash
 
-    Tested with `bash 3.2` on macOS High Sierra, but should be working on Linux.
+    Tested with bash:
+    * 4.3.48 on Linux
+    * 3.2.57 on macOS
 
 1. awscli
 
