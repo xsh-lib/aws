@@ -17,6 +17,7 @@ function list () {
     for property in "${properties[@]}"; do
         if [[ ${property#*.} == 'aws_secret_access_key' ]]; then
             sensitive=$i
+            break
         fi
         i=$((i+1))
     done
@@ -24,6 +25,7 @@ function list () {
     declare result sep str
     result=$(
         {
+            # header
             sep=""
             for property in "${properties[@]}"; do
                 str=${property#*.}
@@ -40,22 +42,31 @@ function list () {
             done
             printf "\n"
 
+            # list config
             xsh aws/cfg/get \
-                | xsh /file/mask -d, -f4 -c1-36 -x
-        } | column -s, -t)
+                | xsh /file/mask -d, -f${sensitive} -c1-36 -x  # mask credentials
+        } | sed 's|,|, \| |g' \
+          | column -s, -t)  # output as table format
 
+    # highlight pattern
     declare pattern
     pattern=$(
         echo "${result}" \
-            | awk -v secret_field=${sensitive} \
-                  '$1 == "default" {
-                      OFS="[ ]+"
-                      $1 = ".+"
-                      if (secret_field) {
-                         $secret_field = ".+"
-                      }
-                      print $0
-                  }')
+            | awk -F\| '{
+                  val = ""
+                  for (i=2; i<=NF; i++) {
+                      val = val $i
+                  }
+                  gsub(" ", "", $1)
+                  a[$1] = val
+              } END {
+                  p = ""
+                  for (key in a) {
+                      if (a[key] == a["default"])
+                          p = (p ? p "|" : p) "^" key " "
+                  }
+                  print p
+              }')
 
-    echo "${result}" | xsh /file/mark -p "^${pattern}$"  # highlight activated profile
+    echo "${result}" | xsh /file/mark -p "${pattern}"  # highlight activated profile
 }
