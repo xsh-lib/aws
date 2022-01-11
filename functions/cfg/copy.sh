@@ -25,12 +25,12 @@ function copy () {
         return 255
     fi
 
-    printf "copying profile from: ${source} to: ${target}\n"
+    printf "copying profile from: %s to: %s\n" "${source}" "${target}"
     xsh aws/cfg/set $(xsh aws/cfg/get "${source}" \
                           | sed "s/^${source}/${target}/")
 
     if [[ -n ${region} ]]; then
-        printf "updating ${target} region to: ${region}\n"
+        printf "updating %s region to: %s\n" "${target}" "${region}"
         aws configure set region "${region}" --profile "${target}"
     fi
 }

@@ -29,7 +29,7 @@ function list () {
             sep=""
             for property in "${properties[@]}"; do
                 str=${property#*.}
-                printf "${sep}${str}"
+                printf "%s" "${sep}${str}"
                 sep=","
             done
             printf "\n"
@@ -37,7 +37,7 @@ function list () {
             sep=""
             for property in "${properties[@]}"; do
                 str=${property#*.}
-                printf "%s" "${sep}$(xsh /string/repeat/1 '-' ${#str})"
+                printf "%s%s" "${sep}" "$(xsh /string/repeat/1 '-' ${#str})"
                 sep=","
             done
             printf "\n"

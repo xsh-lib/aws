@@ -23,7 +23,7 @@ function activate () {
         :
     fi
 
-    printf "activating profile: ${profile}\n"
+    printf "activating profile: %s\n" "${profile}"
     xsh aws/cfg/set $(xsh aws/cfg/get "${profile}" \
                           | sed "s/^${profile}/default/")
 }

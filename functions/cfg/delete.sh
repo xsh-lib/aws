@@ -23,7 +23,7 @@ function delete () {
             return 255
         fi
 
-        printf "deleting profile: ${profile}\n"
+        printf "deleting profile: %s\n" "${profile}"
         xsh /util/sed-regex-inplace \
             "/^\[profile ${profile}\]$/,/^\[.+\]$/{/^\[profile ${profile}\]$/d; /^[^[]+$/d;}" \
             "${XSH_AWS_CFG_CONFIG:?}"

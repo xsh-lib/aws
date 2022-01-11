@@ -43,6 +43,7 @@ function get () {
     xsh /ini/parser -a -p "${XSH_AWS_CFG_CONFIG_ENV_PREFIX}" "${XSH_AWS_CFG_CONFIG:?}"
     xsh /ini/parser -a -p "${XSH_AWS_CFG_CREDENTIALS_ENV_PREFIX}" "${XSH_AWS_CFG_CREDENTIALS:?}"
 
+    # shellcheck disable=SC2125
     declare varname=${XSH_AWS_CFG_CONFIG_ENV_PREFIX}SECTIONS[@] \
             profile
 
