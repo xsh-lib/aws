@@ -25,12 +25,12 @@ function set () {
 
     declare n=2 property  # profile properties started at $2
     for property in "${XSH_AWS_CFG_PROPERTIES[@]:?}"; do
-        if [[ -z ${!n} ]]; then
-            continue
-        fi
-
         property=${property#*.}
-        aws configure set "${property:?}" "${!n}" --profile "${name}"
+        if [[ ${name} == default ]]; then
+            aws configure set "${name}.${property:?}" "${!n}"
+        else
+            aws configure set "${property:?}" "${!n}" --profile "${name}"
+        fi
         n=$((n+1))
     done
 }

@@ -24,12 +24,6 @@ function activate () {
     fi
 
     printf "activating profile: ${profile}\n"
-    declare property value n=0
-    for value in $(xsh aws/cfg/get "${profile}" \
-                       | column -s, -t \
-                       | awk '{$1=""; print}'); do
-        property=${XSH_AWS_CFG_PROPERTIES[n]#*.}
-        aws configure set "default.${property:?}" "${value}"
-        n=$((n+1))
-    done
+    xsh aws/cfg/set $(xsh aws/cfg/get "${profile}" \
+                          | sed "s/^${profile}/default/")
 }
