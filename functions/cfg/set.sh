@@ -1,9 +1,8 @@
 #? Usage:
-#?   @set PROFILE PROPERTY ...
+#?   @set PROPERTIES
 #?
 #? Options:
-#?   PROFILE   Profile name.
-#?   PROPERTY  Property values, in the same sequence that output by cfg/get
+#?   PROPERTIES  Property values, delimited by comma, in the same format that output by cfg/get
 #?
 #? Output:
 #?   None.
@@ -12,6 +11,11 @@
 #? @subshell
 #?
 function set () {
+    declare OLDIFS=${IFS}
+    IFS=,
+    set -- $*
+    IFS=${OLDIFS}
+
     declare name=$1
 
     if [[ -z ${name} ]]; then

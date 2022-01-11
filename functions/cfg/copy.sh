@@ -27,8 +27,7 @@ function copy () {
 
     printf "copying profile from: ${source} to: ${target}\n"
     xsh aws/cfg/set $(xsh aws/cfg/get "${source}" \
-                          | sed "s/^${source}/${target}/" \
-                          | column -s, -t) > /dev/null
+                          | sed "s/^${source}/${target}/")
 
     if [[ -n ${region} ]]; then
         printf "updating ${target} region to: ${region}\n"
