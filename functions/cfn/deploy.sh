@@ -599,10 +599,12 @@ function deploy () {
         xsh log info "succeeded."
     else
         xsh log error "failed."
-        xsh aws/cfn/stack/event "${region_opt[@]}" -e -s "$stack_name"
-        if [[ -n $LOGICAL_ID ]]; then
-            xsh aws/cfn/stack/log "${region_opt[@]}" -w -s "$stack_name" -l "$LOGICAL_ID"
-        fi
+        (
+            xsh aws/cfn/stack/event "${region_opt[@]}" -e -s "$stack_name"
+            if [[ -n $LOGICAL_ID ]]; then
+                xsh aws/cfn/stack/log "${region_opt[@]}" -w -s "$stack_name" -l "$LOGICAL_ID"
+            fi
+        )
     fi
 
     return $ret
