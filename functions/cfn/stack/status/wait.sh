@@ -86,8 +86,8 @@ function wait () {
         if [[ $status == $target_status ]]; then
             printf " [ok]\n"
             return
-        # exit loop if reachs final status
-        elif [[ -n $(xsh /array/search XSH_AWS_CFN__STACK_FINAL_STATUS "$status") ]]; then
+        # exit loop if reachs stable status
+        elif [[ -n $(xsh /array/search XSH_AWS_CFN__STACK_STATUS_STABLE "$status") ]]; then
             printf " [not match]\n"
             return 255
         # exit loop if time is out
