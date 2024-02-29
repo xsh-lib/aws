@@ -10,8 +10,7 @@
 #?     [-c CONFIG]
 #?     [-p POLICY | -P POLICY_DURING_UPDATE]
 #?     [-C DIR]
-#?     [-D]
-#?     [-S]
+#?     [-D | -S]
 #?     [-s STACK_NAME]
 #?     [<-o KEY=VALUE> ...]
 #?
@@ -51,7 +50,7 @@
 #?
 #?   [-C DIR]
 #?
-#?   Change to the DIR.
+#?   Change the current directory to DIR before doing anything.
 #?
 #?   [-D]
 #?
