@@ -1,3 +1,5 @@
+# shellcheck disable=SC2148
+
 #? Description:
 #?   Deploy AWS CloudFormation stack from template.
 #?   The nested templates and non-inline Lambda Functions can be deployed at once.
@@ -368,7 +370,7 @@ function deploy () {
                 config=${OPTARG:?}
                 ;;
             p|P)
-                pass_options+=( -$opt "${OPTARG:?}" )
+                pass_options+=( "-$opt" "${OPTARG:?}" )
                 ;;
             C)
                 dir=${OPTARG:?}
@@ -403,12 +405,14 @@ function deploy () {
 
     # change work dir
     if [[ -n $dir ]]; then
+        # shellcheck disable=SC2164
         cd "$dir"
     fi
 
     # config
     if [[ -n $config ]]; then
         xsh log info "applying config file options: $config..."
+        # shellcheck source=/dev/null
         source "$config"
 
         if __check_config_version__ "${VERSION:-unversioned}"; then
@@ -423,7 +427,7 @@ function deploy () {
     fi
 
     # override config
-    if [[ -n ${options[@]} ]]; then
+    if [[ -n ${options[*]} ]]; then
         xsh log info "applying command line options..."
         xsh /env/override -a -m -s = "${options[@]}"
 
@@ -465,10 +469,10 @@ function deploy () {
     
     # trap clean commands
     if [[ $DELETE -eq 1 ]]; then
-        x-trap-return -F $FUNCNAME \
-                      "xsh log info \"cleaning environment of $FUNCNAME.\""
+        x-trap-return -F "${FUNCNAME[0]}" \
+                      "xsh log info \"cleaning environment of ${FUNCNAME[0]}.\""
 
-        x-trap-return -F $FUNCNAME -a \
+        x-trap-return -F "${FUNCNAME[0]}" -a \
                       "if xsh /io/confirm -t 60 -m \"skip to delete stack and template?\"; then
                           xsh log info \"skipped clean\".
                           return
@@ -476,10 +480,10 @@ function deploy () {
 
         if [[ $bucket_created -eq 1 ]]; then
             # delete the whole s3 bucket on return
-            x-trap-return -F $FUNCNAME -a "xsh aws/s3/bucket/delete \"${bucket_name:?}\""
+            x-trap-return -F "${FUNCNAME[0]}" -a "xsh aws/s3/bucket/delete \"${bucket_name:?}\""
         else
             # delete the individual s3 object on return
-            x-trap-return -F $FUNCNAME -a "aws s3 rm \"$(xsh aws/s3/uri/translate -s s3 "$uri")\""
+            x-trap-return -F "${FUNCNAME[0]}" -a "aws s3 rm \"$(xsh aws/s3/uri/translate -s s3 "$uri")\""
         fi
     fi
 
@@ -503,7 +507,7 @@ function deploy () {
         # trap clean commands
         if [[ $DELETE -eq 1 && $bucket_created -ne 1 ]]; then
             # delete the individual s3 object on return
-            x-trap-return -F $FUNCNAME -a "aws s3 rm \"$(xsh aws/s3/uri/translate -s s3 "$depended_uri")\""
+            x-trap-return -F "${FUNCNAME[0]}" -a "aws s3 rm \"$(xsh aws/s3/uri/translate -s s3 "$depended_uri")\""
         fi
 
         OPTIONS+=( "${key:?}=${depended_uri:?}" )
@@ -537,7 +541,7 @@ function deploy () {
         # trap clean commands
         if [[ $DELETE -eq 1 && $bucket_created -ne 1 ]]; then
             # delete the individual s3 object on return
-            x-trap-return -F $FUNCNAME -a "aws s3 rm \"$(xsh aws/s3/uri/translate -s s3 "$uri")\""
+            x-trap-return -F "${FUNCNAME[0]}" -a "aws s3 rm \"$(xsh aws/s3/uri/translate -s s3 "$uri")\""
         fi
 
         OPTIONS+=( "${param_name_s3bucket:?}=${bucket_name:?}" )
@@ -590,8 +594,8 @@ function deploy () {
 
     # trap clean commands
     if [[ $DELETE -eq 1 ]]; then
-        x-trap-return -F $FUNCNAME -a \
-                      "xsh aws/cfn/stack/delete ${region_opt[@]} -s \"$stack_name\""
+        x-trap-return -F "${FUNCNAME[0]}" -a \
+                      "xsh aws/cfn/stack/delete ${region_opt[*]} -s \"$stack_name\""
     fi
 
     if [[ $ret -eq 0 ]]; then
