@@ -11,7 +11,7 @@
 #?     [-w TIMEOUT]
 #?     [<-o KEY=VALUE> ...]
 #?
-#? Options
+#? Options:
 #?   [-r REGION]
 #?
 #?   Region name.
