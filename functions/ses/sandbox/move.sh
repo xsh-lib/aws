@@ -110,6 +110,7 @@ function move () {
         printf "[no]\n" | xsh /file/mark
 
         declare -a msg
+        msg+=("AWS Premium Support Subscription is required to use support in AWS CLI.")
         msg+=("go to below URL to create a support case to move your account out of AWS SES sandbox:")
         msg+=("  * https://aws.amazon.com/ses/extendedaccessrequest/")
         msg+=("here's the help document about how to create this case:")
