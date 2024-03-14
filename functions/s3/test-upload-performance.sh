@@ -53,7 +53,7 @@ function test-upload-performance () {
         duration=$( { time aws s3 cp "$dir" "$tmp_s3_bucket" --recursive --only-show-errors; } 2>&1 )
 
         printf '%s seconds\n' "$duration"
-    done < <(find $regex -depth "$depth" | sort)
+    done < <(find $regex -type d -depth "$depth" | sort)
 
     say -i "Done"
 }
