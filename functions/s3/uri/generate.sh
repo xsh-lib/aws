@@ -50,6 +50,9 @@ function generate () {
             k)
                 key=$OPTARG
                 ;;
+            *)
+                return 255
+                ;;
         esac
     done
 

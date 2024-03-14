@@ -45,11 +45,10 @@ function log () {
     declare inst_id
 
     for inst_id in "${instance_ids[@]}"; do
-        printf "instance: $inst_id\n"
+        printf "instance: %s\n" "$inst_id"
         if [[ $wait -eq 1 ]]; then
             printf "waiting the instance come to running..."
-            aws "${region_opt[@]}" ec2 wait instance-running --instance-ids "$inst_id"
-            if [[ $? -eq 0 ]]; then
+            if aws "${region_opt[@]}" ec2 wait instance-running --instance-ids "$inst_id"; then
                 printf " [running]\n"
             else
                 printf " [timed out]\n"

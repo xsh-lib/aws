@@ -27,6 +27,9 @@
 #? Output:
 #?   The URI of the uploaded S3 object, in scheme `https`.
 #?
+#? @xsh /trap/err -eE
+#? @subshell
+#?
 function upload () {
     declare OPTIND OPTARG opt
 
@@ -65,9 +68,6 @@ function upload () {
     if [[ $validate -eq 1 ]]; then
         # validate template
         xsh aws/cfn/tmpl/validate -t "$template"
-        if [[ $? -ne 0 ]]; then
-            return 255
-        fi
     fi
 
     xsh aws/s3/upload "${region_opt[@]}" -b "$bucket" -k "$key" -o https "$template"

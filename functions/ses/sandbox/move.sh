@@ -120,7 +120,7 @@ function move () {
         printf '%s\n' "${msg[@]}"
     fi
 
-    read -n 1 -s -p "press any key to continue, CTRL-C to exit."
+    read -r -n 1 -s -p "press any key to continue, CTRL-C to exit."
     printf '\n\n'
     @move "${region_opt[@]}"
 }

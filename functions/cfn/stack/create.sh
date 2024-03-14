@@ -58,9 +58,11 @@ function create () {
                 stack_name=$OPTARG
                 ;;
             t)
+                # shellcheck disable=SC2034
                 template=$OPTARG
                 ;;
             p)
+                # shellcheck disable=SC2034
                 stack_policy=$OPTARG
                 ;;
             R)
@@ -90,7 +92,7 @@ function create () {
     fi
 
     # --parameters options
-    if [[ -n ${options[@]} ]]; then
+    if [[ -n ${options[*]} ]]; then
         options=( --parameters "${options[@]}" )
     fi
 
