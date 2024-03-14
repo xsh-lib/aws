@@ -41,14 +41,14 @@ function domain-dkim () {
     shift $((OPTIND - 1))
     declare domain=${1:?}
 
-    printf "checking the DKIM verifying status of $domain ... "
+    printf "checking the DKIM verifying status of %s ... " "$domain"
 
     aws "${region_lopt[@]}" ses verify-domain-dkim --domain "$domain" >/dev/null
 
     declare out status
 
     out=$(aws "${region_lopt[@]}" ses get-identity-dkim-attributes --identities "$domain")
-    status=$(xsh /json/parser eval "$out" '{JSON}["DkimAttributes"]["'$domain'"]["DkimVerificationStatus"]')
+    status=$(xsh /json/parser eval "$out" '{JSON}["DkimAttributes"]["'"$domain"'"]["DkimVerificationStatus"]')
 
     declare text="\
     * Record Type: CNAME
@@ -64,17 +64,18 @@ function domain-dkim () {
         declare -a tokens
         declare i
         for i in {0..2}; do
-            tokens[$i]=$(xsh /json/parser eval "$out" '{JSON}["DkimAttributes"]["'$domain'"]["DkimTokens"]['$i']')
+            tokens[i]=$(xsh /json/parser eval "$out" '{JSON}["DkimAttributes"]["'"$domain"'"]["DkimTokens"]['"$i"']')
         done
 
         declare token
         for token in "${tokens[@]}"; do
+            # shellcheck disable=SC2059
             printf "$text\n" "$token" "$domain" "$token"
         done
 
         printf "then grab some coffee, it takes time for the DNS to take effect across the internet.\n"
 
-        read -n 1 -s -p "press any key to continue, CTRL-C to exit."
+        read -r -n 1 -s -p "press any key to continue, CTRL-C to exit."
         printf '\n\n'
         @domain-dkim "${region_sopt[@]}" "$domain"
     fi

@@ -28,6 +28,9 @@
 #? Output:
 #?   The URI of the uploaded S3 object.
 #?
+#? @xsh /trap/err -eE
+#? @subshell
+#?
 function upload () {
     declare OPTIND OPTARG opt
 
@@ -69,9 +72,6 @@ function upload () {
 
     # upload file to S3 bucket
     aws s3 cp --only-show-errors "$template" "s3://$bucket/$key"
-    if [[ $? -ne 0 ]]; then
-        return 255
-    fi
 
     # generate the uploaded S3 object URI
     xsh aws/s3/uri/generate "${region_opt[@]}" -s "$scheme" -b "$bucket" -k "$key"

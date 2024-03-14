@@ -50,7 +50,7 @@ function event () {
 
     if [[ $error -eq 1 ]]; then
         aws "${region_opt[@]}" cloudformation describe-stack-events --stack-name "$stack_name" \
-            | egrep "${error_match_options[@]}" || :
+            | grep -E "${error_match_options[@]}" || :
     else
         aws "${region_opt[@]}" cloudformation describe-stack-events --stack-name "$stack_name"
     fi

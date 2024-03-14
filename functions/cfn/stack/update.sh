@@ -94,9 +94,11 @@ function update () {
                 update='direct'
                 ;;
             p)
+                # shellcheck disable=SC2034
                 stack_policy=$OPTARG
                 ;;
             P)
+                # shellcheck disable=SC2034
                 stack_policy_during_update=$OPTARG
                 ;;
             o)
@@ -118,7 +120,7 @@ function update () {
     fi
 
     # --parameters options
-    if [[ -n ${options[@]} ]]; then
+    if [[ -n ${options[*]} ]]; then
         options=( --parameters "${options[@]}" )
     fi
 
