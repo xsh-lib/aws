@@ -18,7 +18,11 @@ function exist () {
     declare name=${1:?}
     declare out
 
-    out=$(aws s3api head-bucket --bucket "$name" 2>&1 || :)
+    # example output for the unexist bucket and the exist bucket but not accessable:
+    #   - An error occurred (404) when calling the HeadBucket operation: Not Found
+    #   - An error occurred (403) when calling the HeadBucket operation: Forbidde
+    # suppress the stdout, and output the stderr to stdout.
+    out=$(aws s3api head-bucket --bucket "$name" 2>&1 1>/dev/null || :)
 
     # remove any non-digit
     out=${out//[^0-9]/}
