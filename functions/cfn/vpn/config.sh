@@ -472,7 +472,7 @@ function config () {
         fi
 
         # skip the manager stack config
-        if [[ $stack == 0 && if_mgr_stack_conf -eq 0 ]]; then
+        if [[ $stack == 0 && $if_mgr_stack_conf -eq 0 ]]; then
             continue
         fi
 
