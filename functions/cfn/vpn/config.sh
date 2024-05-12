@@ -6,16 +6,6 @@
 #?   The fundamental syntax of the config is described in the `CONFIG` section of
 #?   `xsh aws/cfn/deploy`. Check the document with command: `xsh aws/cfn/deploy -g`.
 #?
-#?   Following environment variables are optionally looked up to generate config:
-#?
-#?   - XSH_AWS_CFN_VPN_ENV
-#?   - XSH_AWS_CFN_VPN_DOMAIN
-#?   - XSH_AWS_CFN_VPN_DNS
-#?   - XSH_AWS_CFN_VPN_DNS_USERNAME
-#?   - XSH_AWS_CFN_VPN_DNS_CREDENTIAL
-#?
-#?   The command line options take precedence over environment variables.
-#?
 #? Usage:
 #?   @config
 #?     [-r REGION]
@@ -85,15 +75,36 @@
 #?
 #?   [-d DOMAIN]
 #?
-#?   The DOMAIN specifies the base domain name.
+#?   The DOMAIN specifies the root domain name.
+#?   Any subdomain to the root domain must not be included.
+#?   For instance, use `example.com` over the FQDN form `vpn.example.com`.
+#?   The latter is not acceptable.
 #?
 #?   An environment variable `XSH_AWS_CFN_VPN_DOMAIN` can be used to specify the
-#?   domain name.
+#?   root domain name.
+#?
+#?   This script uses below rules to derive other domain names and email addresses from the root domain.
+#?   If the rules do not meet your requirements, use the corresponding environment variables
+#?   to override the values. The new values must share the same root domain with DOMAIN.
+#?   +---------------------+--------+----------+---+-------------+----------------------------------+
+#?   | Purpose             | Type   |   Prefix | + | Root Domain | Environment Variable to Override |
+#?   +=====================+========+==========+===+=============+==================================+
+#?   | SSM administrator   | Email  |    admin | @ | example.com | XSH_AWS_CFN_VPN_SSM_ADMIN_EMAIL  |
+#?   +---------------------+--------+----------+---+-------------+----------------------------------+
+#?   | SSM service         | Domain | admin.ss | . | example.com | XSH_AWS_CFN_VPN_SSM_DOMAIN       |
+#?   +---------------------+--------+----------+---+-------------+----------------------------------+
+#?   | L2TPD service       | Domain |      vpn | . | example.com | XSH_AWS_CFN_VPN_L2TP_DOMAIN      |
+#?   +---------------------+--------+----------+---+-------------+----------------------------------+
+#?   | Shadowsocks service | Domain |       ss | . | example.com | XSH_AWS_CFN_VPN_SS_DOMAIN        |
+#?   +---------------------+--------+----------+---+-------------+----------------------------------+
+#?
+#?   The environment variables above are ignored if root domain is not set.
 #?
 #?   [-n DNS]
 #?
 #?   The DNS specifies the Domain Nameserver for the DOMAIN.
 #?   Supported Nameserver: 'name.com'.
+#?   This option is ignored if `-d DOMAIN` or `XSH_AWS_CFN_VPN_DOMAIN` is not set.
 #?
 #?   An environment variable `XSH_AWS_CFN_VPN_DNS` can be used to specify the
 #?   Domain Nameserver.
@@ -101,6 +112,7 @@
 #?   [-u DNS_USERNAME]
 #?
 #?   The DNS_USERNAME specifies the user identity for the Domain Nameserver API service.
+#?   This option is ignored if `-d DOMAIN` or `XSH_AWS_CFN_VPN_DOMAIN` is not set.
 #?
 #?   An environment variable `XSH_AWS_CFN_VPN_DNS_USERNAME` can be used to specify the
 #?   user identity.
@@ -108,19 +120,54 @@
 #?   [-P DNS_CREDENTIAL]
 #?
 #?   The DNS_CREDENTIAL specifies the user credential/token for the Domain Nameserver API service.
+#?   This option is ignored if `-d DOMAIN` or `XSH_AWS_CFN_VPN_DOMAIN` is not set.
 #?
 #?   An environment variable `XSH_AWS_CFN_VPN_DNS_CREDENTIAL` can be used to specify the
 #?   user credential/token.
 #?
+#?   The `DNS*` options are essential to automate the DNS record management. They are used
+#?   in several places depending on you configuration:
+#?
+#?   +---------------------+-------------------+---------------------------------------------------------------------------+
+#?   | Used by             | Used on           | Used for                                                                  |
+#?   +=====================+===================+===========================================================================+
+#?   | shadowsocks-manager | Manager stack     | Publishing DNS records for web console, L2TPD and Shadowsocks nodes       |
+#?   +---------------------+-------------------+---------------------------------------------------------------------------+
+#?   | AWS Lambda          | AWS               | Issuing TLS certificate in AWS ACM to enable HTTPS on ELB for web console |
+#?   +---------------------+-------------------+---------------------------------------------------------------------------+
+#?   | acme.sh             | Shadowsocks nodes | Issuing TLS certificate for v2ray-plugin if it's enabled                  |
+#?   +---------------------+-------------------+---------------------------------------------------------------------------+
+#?
 #?   [-i PLUGINS ...]
 #?
-#?   The PLUGINS specifies the plugins that will be used to generate config.
+#?   The PLUGINS specifies the Shadowsocks plugins that will be enabled in the config.
 #?   The PLUGINS option argument is a whitespace separated set of plugin names.
-#?   Supported plugins: 'v2ray'.
+#?   Supported plugins:
+#?
+#?   - v2ray
+#?
+#?     This is ignored if `-d DOMAIN` or `XSH_AWS_CFN_VPN_DOMAIN` is not set.
 #?
 #?   [-C DIR]
 #?
 #?   Change the current directory to DIR before doing anything.
+#?
+#? Environment:
+#?   The following environment variables are optionally looked up to generate config:
+#?
+#?   - XSH_AWS_CFN_VPN_ENV
+#?   - XSH_AWS_CFN_VPN_DOMAIN
+#?   - XSH_AWS_CFN_VPN_DNS
+#?   - XSH_AWS_CFN_VPN_DNS_USERNAME
+#?   - XSH_AWS_CFN_VPN_DNS_CREDENTIAL
+#?   - XSH_AWS_CFN_VPN_PLUGINS
+#?
+#?   - XSH_AWS_CFN_VPN_SSM_ADMIN_EMAIL
+#?   - XSH_AWS_CFN_VPN_SSM_DOMAIN
+#?   - XSH_AWS_CFN_VPN_L2TP_DOMAIN
+#?   - XSH_AWS_CFN_VPN_SS_DOMAIN
+#?
+#?   The command line options take precedence over environment variables if both are set.
 #?
 #? Example:
 #?   # Create 1 manager config file using domain plus the Nameserver API enabled:
@@ -176,7 +223,9 @@ function config () {
     function __update_config__ () {
         # shellcheck disable=SC2206
         declare file=${1:?} stack=${2:?} base_name=${3:?} env=${4:?} random=${5:?} \
-                domain=$6 dns=$7 dns_username=$8 dns_credential=$9 plugins=( ${10} ) region=${11:?}
+                domain=$6 dns=$7 dns_username=$8 dns_credential=$9 v2ray=${10} \
+                ssm_admin_email=${11} ssm_domain=${12} l2tp_domain=${13} ss_domain=${14} \
+                region=${15:?}
 
         xsh log info "updating config file: $file ..."
 
@@ -193,48 +242,29 @@ function config () {
             x-util-sed-inplace "s|^$param=[^\"]*|$param=${!param}|" "$file"
         done
 
-        declare ssm_hostname=admin.ss \
-                ssm_admin=admin \
-                l2tp_hostname=vpn \
-                ss_hostname=ss
-
         # shellcheck disable=SC2034
         declare KeyPairName="aws-ek-$base_name-$stack-$env-$region" \
-                DomainNameServer=$dns \
-                DomainNameServerUsername=$dns_username \
-                DomainNameServerCredential=$dns_credential \
-                EnableV2ray=0 \
-                Domain SSMDomain SSMAdminEmail L2TPDomain SSDomain
-
-        # plugins
-        declare plugin
-        for plugin in "${plugins[@]}"; do
-            case $plugin in
-                v2ray)
-                    # shellcheck disable=SC2034
-                    EnableV2ray=1
-                    ss_hostname=v2ray.$ss_hostname
-                    ;;
-                *)
-                    xsh log warning "unsupported plugin: $plugin"
-                    ;;
-            esac
-        done
+                Domain DomainNameServer DomainNameServerUsername DomainNameServerCredential EnableV2ray \
+                SSMAdminEmail SSMDomain L2TPDomain SSDomain
 
         # shellcheck disable=SC2034
         if [[ -n $domain ]]; then
             Domain=$domain
-            SSMDomain=$ssm_hostname.$domain
-            SSMAdminEmail=$ssm_admin@$domain
-            L2TPDomain=$l2tp_hostname.$domain
-            SSDomain=$ss_hostname.$domain
+            DomainNameServer=$dns
+            DomainNameServerUsername=$dns_username
+            DomainNameServerCredential=$dns_credential
+            EnableV2ray=$v2ray
+            SSMAdminEmail=$ssm_admin_email
+            SSMDomain=$ssm_domain
+            L2TPDomain=$l2tp_domain
+            SSDomain=$ss_domain
         fi
 
         # update OPTIONS:
-        #   KeyPairName Domain SSMDomain SSMAdminEmail L2TPDomain SSDomain
-        #   DomainNameServer DomainNameServerUsername DomainNameServerCredential EnableV2ray
-        for param in KeyPairName Domain SSMDomain SSMAdminEmail L2TPDomain SSDomain \
-                    DomainNameServer DomainNameServerUsername DomainNameServerCredential EnableV2ray; do
+        #   KeyPairName Domain DomainNameServer DomainNameServerUsername DomainNameServerCredential EnableV2ray
+        #   SSMAdminEmail SSMDomain L2TPDomain SSDomain
+        for param in KeyPairName Domain DomainNameServer DomainNameServerUsername DomainNameServerCredential EnableV2ray \
+                SSMAdminEmail SSMDomain L2TPDomain SSDomain; do
             xsh log info "> updating OPTIONS: $param ..."
             # (^\|[^a-zA-Z0-9_]): to match word boundary, for both GNU and BSD sed
             x-util-sed-regex-inplace "s|(^\|[^a-zA-Z0-9_])$param=[^\"]*|\1$param=${!param}|" "$file"
@@ -286,6 +316,7 @@ function config () {
             dns_username=${XSH_AWS_CFN_VPN_DNS_USERNAME} \
             dns_credential=${XSH_AWS_CFN_VPN_DNS_CREDENTIAL} \
             plugins=( "${XSH_AWS_CFN_VPN_PLUGINS[@]}" ) \
+            v2ray=0 \
             dir \
             OPTIND OPTARG opt
 
@@ -356,6 +387,7 @@ function config () {
         cd "$dir"
     fi
 
+    # check if need to generate the manager stack config
     declare if_mgr_stack_conf=0
     if [[ ${stacks[0]} == 0 ]]; then
         # generate the manager stack config
@@ -367,10 +399,37 @@ function config () {
         stacks=( 0 "${stacks[@]}" )
     fi
 
+    # check if need to generate the manager stack json
     declare if_mgr_stack_json=0
     if [[ ${#stacks[@]} -gt 1 ]]; then
         # generate the manager stack json
         if_mgr_stack_json=1
+    fi
+
+    # plugins
+    declare plugin
+    for plugin in "${plugins[@]}"; do
+        case $plugin in
+            v2ray)
+                v2ray=1
+                ;;
+            *)
+                xsh log warning "unsupported plugin: $plugin"
+                ;;
+        esac
+    done
+
+    # apply the derive rules for domains and email address if the root domain is set
+    if [[ -n $domain ]]; then
+        ssm_admin_email=${XSH_AWS_CFN_VPN_SSM_ADMIN_EMAIL:-admin@$domain}
+        ssm_domain=${XSH_AWS_CFN_VPN_SSM_DOMAIN:-admin.ss.$domain}
+        l2tp_domain=${XSH_AWS_CFN_VPN_L2TP_DOMAIN:-vpn.$domain}
+
+        if [[ $v2ray -eq 1 ]]; then
+            ss_domain=${XSH_AWS_CFN_VPN_SS_DOMAIN:-v2ray.ss.$domain}
+        else
+            ss_domain=${XSH_AWS_CFN_VPN_SS_DOMAIN:-ss.$domain}
+        fi
     fi
 
     # loop the list to generate config files
@@ -413,7 +472,7 @@ function config () {
         fi
 
         # skip the manager stack config
-        if [[ $stack == 0 && if_mgr_stack_conf -eq 0 ]]; then
+        if [[ $stack == 0 && $if_mgr_stack_conf -eq 0 ]]; then
             continue
         fi
 
@@ -421,7 +480,9 @@ function config () {
         file=$stack_name.conf
         __init_config__ "$file" "$stack"
         __update_config__ "$file" "$stack" "$base_name" "$env" "$random" \
-            "$domain" "$dns" "$dns_username" "$dns_credential" "${plugins[*]}" "$stack_region"
+            "$domain" "$dns" "$dns_username" "$dns_credential" "$v2ray" \
+            "$ssm_admin_email" "$ssm_domain" "$l2tp_domain" "$ss_domain" \
+            "$stack_region"
 
         # update the node config file with the output of the manager stack
         if [[ $stack -gt 0 && -n $mgr_stack_json ]]; then

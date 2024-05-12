@@ -66,7 +66,20 @@
 #?
 #?   Change the current directory to DIR before doing anything.
 #?
+#? Environment:
+#?   See the aws/cfn/vpn/config for the environment variables:
+#?   $ xsh help -s Environment aws/cfn/vpn/config
+#?
 #? Example:
+#?   # Set the environment variables
+#?   $ export \
+#?     XSH_AWS_CFN_VPN_ENV=sb \
+#?     XSH_AWS_CFN_VPN_DOMAIN=Example.com \
+#?     XSH_AWS_CFN_VPN_DNS=name.com \
+#?     XSH_AWS_CFN_VPN_DNS_USERNAME=DomainNameServerUsername \
+#?     XSH_AWS_CFN_VPN_DNS_CREDENTIAL=DomainNameServerCredential \
+#?     XSH_AWS_CFN_VPN_PLUGINS=v2ray
+#?
 #?   # Create an all-in-one stack by using AWS profile `vpn-2021-00`.
 #?   $ @cluster -x 00 -c vpn-2021
 #?

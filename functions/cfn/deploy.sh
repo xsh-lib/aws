@@ -530,7 +530,8 @@ function deploy () {
             zipfile=$value
         else
             zipfile=${value}.zip
-            zip "$zipfile" "$value"
+            # use -j to flatten the directory structure
+            zip -j "$zipfile" "$value"
         fi
 
         s3key=${prekey:?}/$(basename "$zipfile")
