@@ -68,7 +68,7 @@ function upload () {
     fi
 
     # create bucket if not exsit
-    if ! aws/s3/bucket/exist "$bucket"; then
+    if ! xsh aws/s3/bucket/exist "$bucket"; then
         xsh aws/s3/bucket/create "${region_opt[@]}" "$bucket" >/dev/null
     fi
 
