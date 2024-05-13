@@ -1,7 +1,7 @@
 # shellcheck disable=SC2148
 
 #? Description:
-#?   Generate config file(s) for AWS CloudFormation VPN stack(s). 
+#?   Generate config file(s) for AWS CloudFormation VPN stack(s) from templates. 
 #?   The config file(s) can be used by `aws/cfn/vpn/deploy`.
 #?   The fundamental syntax of the config is described in the `CONFIG` section of
 #?   `xsh aws/cfn/deploy`. Check the document with command: `xsh aws/cfn/deploy -g`.
@@ -97,6 +97,8 @@
 #?   +---------------------+--------+----------+---+-------------+----------------------------------+
 #?   | Shadowsocks service | Domain |       ss | . | example.com | XSH_AWS_CFN_VPN_SS_DOMAIN        |
 #?   +---------------------+--------+----------+---+-------------+----------------------------------+
+#?   | Shadowsocks service | Domain | v2ray.ss | . | example.com | XSH_AWS_CFN_VPN_SS_DOMAIN        |
+#?   +---------------------+--------+----------+---+-------------+----------------------------------+
 #?
 #?   The environment variables above are ignored if root domain is not set.
 #?
@@ -168,6 +170,12 @@
 #?   - XSH_AWS_CFN_VPN_SS_DOMAIN
 #?
 #?   The command line options take precedence over environment variables if both are set.
+#?
+#? Template:
+#?   The config file is generated from the templates in the `config-templates` directory.
+#?   The template file names are in the following format:
+#?
+#?   - [DEPENDS|LAMBDA|LOGICAL_ID|OPTIONS]-[COMMON|00|0|1].conf
 #?
 #? Example:
 #?   # Create 1 manager config file using domain plus the Nameserver API enabled:

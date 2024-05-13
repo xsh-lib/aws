@@ -57,7 +57,7 @@
 #? @subshell
 #?
 function delete () {
-    declare region stacks profiles names \
+    declare region stacks=( 00 ) profiles names \
             OPTIND OPTARG opt
 
     xsh imports /util/getopts/extra /int/range/expand aws/cfg/activate

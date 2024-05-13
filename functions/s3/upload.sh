@@ -68,7 +68,9 @@ function upload () {
     fi
 
     # create bucket if not exsit
-    xsh aws/s3/bucket/create "${region_opt[@]}" "$bucket" >/dev/null
+    if ! xsh aws/s3/bucket/exist "$bucket"; then
+        xsh aws/s3/bucket/create "${region_opt[@]}" "$bucket" >/dev/null
+    fi
 
     # upload file to S3 bucket
     aws s3 cp --only-show-errors "$template" "s3://$bucket/$key"
