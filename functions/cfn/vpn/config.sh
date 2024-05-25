@@ -14,11 +14,7 @@
 #?     [-b BASE_NAME]
 #?     [-e ENVIRONMENT]
 #?     [-R]
-#?     [-d DOMAIN]
-#?     [-n DNS]
-#?     [-u DNS_USERNAME]
-#?     [-P DNS_CREDENTIAL]
-#?     [-i PLUGINS ...]
+#?     [-d BASE_DOMAIN]
 #?     [-C DIR]
 #?
 #? Options:
@@ -65,111 +61,124 @@
 #?   The ENVIRONMENT specifies the environment name that is used to generate stack name.
 #?   Default is 'sb' which stands for sandbox.
 #?
-#?   An environment variable `XSH_AWS_CFN_VPN_ENV` can be used to specify the
-#?   environment name.
+#?   This option overrides the environment variable: `XACVC_XACC_ENVIRONMENT`.
 #?
 #?   [-R]
 #?
 #?   Do not add a random suffix to the stack name.
 #?   Default is adding a random suffix to the stack name.
 #?
-#?   [-d DOMAIN]
+#?   This option overrides the environment variable: `XACVC_XACC_RANDOM_STACK_NAME_SUFFIX`.
 #?
-#?   The DOMAIN specifies the root domain name.
-#?   Any subdomain to the root domain must not be included.
-#?   For instance, use `example.com` over the FQDN form `vpn.example.com`.
-#?   The latter is not acceptable.
+#?   [-d BASE_DOMAIN]
 #?
-#?   An environment variable `XSH_AWS_CFN_VPN_DOMAIN` can be used to specify the
-#?   root domain name.
+#?   The BASE_DOMAIN specifies the base domain name for deriving other domain names.
+#?   No default value.
 #?
-#?   This script uses below rules to derive other domain names and email addresses from the root domain.
+#?   This option overrides the environment variable: `XACVC_BASE_DOMAIN`.
+#?
+#?   The following rules are applied to derive the domain names:
 #?   If the rules do not meet your requirements, use the corresponding environment variables
-#?   to override the values. The new values must share the same root domain with DOMAIN.
-#?   +---------------------+--------+----------+---+-------------+----------------------------------+
-#?   | Purpose             | Type   |   Prefix | + | Root Domain | Environment Variable to Override |
-#?   +=====================+========+==========+===+=============+==================================+
-#?   | SSM administrator   | Email  |    admin | @ | example.com | XSH_AWS_CFN_VPN_SSM_ADMIN_EMAIL  |
-#?   +---------------------+--------+----------+---+-------------+----------------------------------+
-#?   | SSM service         | Domain | admin.ss | . | example.com | XSH_AWS_CFN_VPN_SSM_DOMAIN       |
-#?   +---------------------+--------+----------+---+-------------+----------------------------------+
-#?   | L2TPD service       | Domain |      vpn | . | example.com | XSH_AWS_CFN_VPN_L2TP_DOMAIN      |
-#?   +---------------------+--------+----------+---+-------------+----------------------------------+
-#?   | Shadowsocks service | Domain |       ss | . | example.com | XSH_AWS_CFN_VPN_SS_DOMAIN        |
-#?   +---------------------+--------+----------+---+-------------+----------------------------------+
-#?   | Shadowsocks service | Domain | v2ray.ss | . | example.com | XSH_AWS_CFN_VPN_SS_DOMAIN        |
-#?   +---------------------+--------+----------+---+-------------+----------------------------------+
+#?   to override the values.
+#?   +------------------+--------+----------+---+-------------+----------------------------------+
+#?   | Target           | Type   | Prefix   | + | Base Domain | Overridable with                 |
+#?   +==================+========+==========+===+=============+==================================+
+#?   | SSMAdminEmail    | Email  | admin    | @ | example.com | XACVC_XACC_OPTIONS_SSMAdminEmail |
+#?   +------------------+--------+----------+---+-------------+----------------------------------+
+#?   | SSMDomain        | Domain | admin.ss | . | example.com | XACVC_XACC_OPTIONS_SSMDomain     |
+#?   +------------------+--------+----------+---+-------------+----------------------------------+
+#?   | SSDomain         | Domain | ss       | . | example.com | XACVC_XACC_OPTIONS_SSDomain      |
+#?   +------------------+--------+----------+---+-------------+----------------------------------+
+#?   | SSDomain (V2Ray) | Domain | v2ray.ss | . | example.com | XACVC_XACC_OPTIONS_SSDomain      |
+#?   +------------------+--------+----------+---+-------------+----------------------------------+
+#?   | L2TPDomain       | Domain | vpn      | . | example.com | XACVC_XACC_OPTIONS_L2TPDomain    |
+#?   +------------------+--------+----------+---+-------------+----------------------------------+
 #?
-#?   The environment variables above are ignored if root domain is not set.
+#?   The domain names can have different root domains or different zone names, regardless of whether
+#?   they are sharing the same DNS provider or credentials.
 #?
-#?   [-n DNS]
-#?
-#?   The DNS specifies the Domain Nameserver for the DOMAIN.
-#?   Supported Nameserver: 'name.com'.
-#?   This option is ignored if `-d DOMAIN` or `XSH_AWS_CFN_VPN_DOMAIN` is not set.
-#?
-#?   An environment variable `XSH_AWS_CFN_VPN_DNS` can be used to specify the
-#?   Domain Nameserver.
-#?
-#?   [-u DNS_USERNAME]
-#?
-#?   The DNS_USERNAME specifies the user identity for the Domain Nameserver API service.
-#?   This option is ignored if `-d DOMAIN` or `XSH_AWS_CFN_VPN_DOMAIN` is not set.
-#?
-#?   An environment variable `XSH_AWS_CFN_VPN_DNS_USERNAME` can be used to specify the
-#?   user identity.
-#?
-#?   [-P DNS_CREDENTIAL]
-#?
-#?   The DNS_CREDENTIAL specifies the user credential/token for the Domain Nameserver API service.
-#?   This option is ignored if `-d DOMAIN` or `XSH_AWS_CFN_VPN_DOMAIN` is not set.
-#?
-#?   An environment variable `XSH_AWS_CFN_VPN_DNS_CREDENTIAL` can be used to specify the
-#?   user credential/token.
-#?
-#?   The `DNS*` options are essential to automate the DNS record management. They are used
-#?   in several places depending on you configuration:
-#?
-#?   +---------------------+-------------------+---------------------------------------------------------------------------+
-#?   | Used by             | Used on           | Used for                                                                  |
-#?   +=====================+===================+===========================================================================+
-#?   | shadowsocks-manager | Manager stack     | Publishing DNS records for web console, L2TPD and Shadowsocks nodes       |
-#?   +---------------------+-------------------+---------------------------------------------------------------------------+
-#?   | AWS Lambda          | AWS               | Issuing TLS certificate in AWS ACM to enable HTTPS on ELB for web console |
-#?   +---------------------+-------------------+---------------------------------------------------------------------------+
-#?   | acme.sh             | Shadowsocks nodes | Issuing TLS certificate for v2ray-plugin if it's enabled                  |
-#?   +---------------------+-------------------+---------------------------------------------------------------------------+
-#?
-#?   [-i PLUGINS ...]
-#?
-#?   The PLUGINS specifies the Shadowsocks plugins that will be enabled in the config.
-#?   The PLUGINS option argument is a whitespace separated set of plugin names.
-#?   Supported plugins:
-#?
-#?   - v2ray
-#?
-#?     This is ignored if `-d DOMAIN` or `XSH_AWS_CFN_VPN_DOMAIN` is not set.
+#?   In most cases, the zone name of a domain name is the same as the root domain name. But with the
+#?   delegated subdomain, the domain names direved from the subdomain have different zone name from
+#?   the root domain name. For the sake of this complexity, the zone names for all the domain names
+#?   are dynamically resolved during the deployment.
 #?
 #?   [-C DIR]
 #?
 #?   Change the current directory to DIR before doing anything.
 #?
 #? Environment:
-#?   The following environment variables are optionally looked up to generate config:
-#?
-#?   - XSH_AWS_CFN_VPN_ENV
-#?   - XSH_AWS_CFN_VPN_DOMAIN
-#?   - XSH_AWS_CFN_VPN_DNS
-#?   - XSH_AWS_CFN_VPN_DNS_USERNAME
-#?   - XSH_AWS_CFN_VPN_DNS_CREDENTIAL
-#?   - XSH_AWS_CFN_VPN_PLUGINS
-#?
-#?   - XSH_AWS_CFN_VPN_SSM_ADMIN_EMAIL
-#?   - XSH_AWS_CFN_VPN_SSM_DOMAIN
-#?   - XSH_AWS_CFN_VPN_L2TP_DOMAIN
-#?   - XSH_AWS_CFN_VPN_SS_DOMAIN
-#?
+#?   TODO: a better way to document the environment variables
+#?   The following environment variables are optionally looked up to generate config.
 #?   The command line options take precedence over environment variables if both are set.
+#?
+#?   - XACVC_BASE_DOMAIN
+#?   - XACVC_XACC_ENVIRONMENT
+#?   - XACVC_XACC_RANDOM_STACK_NAME_SUFFIX
+#?
+#?   The following environment variables are optionally looked up to generate config.
+#?   The environment variables take precedence over the default values if set.
+#?
+#?   - XACVC_XACC_STACK_NAME
+#?
+#?   - XACVC_XACC_OPTIONS_DomainNameServerEnv
+#?
+#?   - XACVC_XACC_OPTIONS_SSMAdminUsername
+#?   - XACVC_XACC_OPTIONS_SSMAdminPassword
+#?   - XACVC_XACC_OPTIONS_SSMAdminEmail
+#?   - XACVC_XACC_OPTIONS_SSMDomain
+#?   - XACVC_XACC_OPTIONS_SSMDomainNameServerEnv
+#?
+#?   - XACVC_XACC_OPTIONS_SSManagerPort
+#?   - XACVC_XACC_OPTIONS_SSEncrypt
+#?   - XACVC_XACC_OPTIONS_SSPortBegin
+#?   - XACVC_XACC_OPTIONS_SSPortEnd
+#?   - XACVC_XACC_OPTIONS_SSV2Ray
+#?   - XACVC_XACC_OPTIONS_SSDomain
+#?   - XACVC_XACC_OPTIONS_SSDomainNameServerEnv
+#?
+#?   - XACVC_XACC_OPTIONS_L2TPUsername
+#?   - XACVC_XACC_OPTIONS_L2TPPassword
+#?   - XACVC_XACC_OPTIONS_L2TPSharedKey
+#?   - XACVC_XACC_OPTIONS_L2TPDomain
+#?   - XACVC_XACC_OPTIONS_L2TPDomainNameServerEnv
+#?
+#?   - XACVC_XACC_OPTIONS_DomainNameServerEnv
+#?
+#?     The XACVC_XACC_OPTIONS_DomainNameServerEnv specifies the environment variables required to use the DNS API service.
+#?     No default value.
+#?
+#?     Syntax: `PROVIDER={dns_provider},LEXICON_PROVIDER_NAME={dns_provider},LEXICON_{DNS_PROVIDER}_{OPTION}={value}[,...]`
+#?
+#?     The Python library `dns-lexicon` is leveraged to parse the DNS_ENV and access the DNS API.
+#?     The required {OPTION} depends on the {dns_provider} that you use.
+#?     For the list of supported {dns_provider} and {OPTION} please refer to:
+#?     * https://dns-lexicon.readthedocs.io/en/latest/configuration_reference.html
+#?
+#?     Speciallly, an extra environment variable `PROVIDER` is used to repeat the {dns_provider} for
+#?     the convenience of using the DNS_ENV in `acme.sh` with the `--dns dns_lexicon` option.
+#?     * https://github.com/acmesh-official/acme.sh/wiki/dnsapi
+#?     * https://github.com/acmesh-official/acme.sh/wiki/How-to-use-lexicon-DNS-API
+#?
+#?     Sample: `PROVIDER=namecom,LEXICON_PROVIDER_NAME=namecom,LEXICON_NAMECOM_AUTH_USERNAME=your_username,LEXICON_NAMECOM_AUTH_TOKEN=your_token`
+#?
+#?     XACVC_XACC_OPTIONS_DomainNameServerEnv is defaultly used to access the DNS API for all the domain names: `XACVC_XACC_OPTIONS_[SSM|SS|L2TP]Domain`.
+#?     If some domain names require different settings from the default, the corresponding environment
+#?     variables can be used to override the default: `XACVC_XACC_OPTIONS_[SSM|SS|L2TP]DomainNameServerEnv`.
+#?
+#?     This option is essential to automate the DNS record management. They are used
+#?     in several places depending on you configuration:
+#?
+#?     +-------------------------+----------------------------+-------------------------+---------------------------+----------------------+-----------------+------------------+
+#?     | Project                 | Component                  | DNS Library             | Usage                     | Purpose              | Impacted Domain | Impacted Feature |
+#?     +=========================+============================+=========================+===========================+======================+=================+==================+
+#?     | shadowsocks-manager     | docker-entrypoint.sh       | acme.sh => dns-lexicon  | domain owner verification | issuing certificates | SSMDomain       | Nginx HTTPS      |
+#?     +-------------------------+----------------------------+-------------------------+---------------------------+----------------------+-----------------+------------------+
+#?     | shadowsocks-manager     | domain/models.py           | dns-lexicon             | DNS record management     | DNS record sync      | SSMDomain       | DNS record sync  |
+#?     |                         |                            |                         |                           |                      | SSDomain        |                  |
+#?     |                         |                            |                         |                           |                      | L2TPDomain      |                  |
+#?     +-------------------------+----------------------------+-------------------------+---------------------------+----------------------+-----------------+------------------+
+#?     | shadowsocks-libev-v2ray | docker-entrypoint.sh       | acme.sh => dns-lexicon  | domain owner verification | issuing certificates | SSDomain        | v2ray-plugin     |
+#?     +-------------------------+----------------------------+-------------------------+---------------------------+----------------------+-----------------+------------------+
 #?
 #? Template:
 #?   The config file is generated from the templates in the `config-templates` directory.
@@ -193,7 +202,58 @@
 #? @xsh /trap/err -eE
 #? @subshell
 #?
+#? @xsh imports /int/range/expand /string/lower /util/getopts/extra /util/sed-inplace /util/sed-regex-inplace
+#? @xsh imports aws/cfg/activate aws/cfn/stack/list aws/cfn/stack/desc aws/cfn/stack/output/get aws/cfn/deploy
+#?
 function config () {
+
+    function __get_stack_type__ () {
+        #? Description:
+        #?   Get the stack type by the stack index.
+        #?
+        #? Rule:
+        #?   +-------+----+------+
+        #?   | Index | to | Type |
+        #?   +=======+====+======+
+        #?   | 00    | => | 00   |
+        #?   +-------+----+------+
+        #?   | 0     | => | 0    |
+        #?   +-------+----+------+
+        #?   | >= 1  | => | 1    |
+        #?   +-------+----+------+
+        #?
+        declare stack=${1:?}
+        if [[ $stack -gt 0 ]]; then
+            echo 1
+        else
+            echo "$stack"
+        fi
+    }
+
+    function __replace_option_value_by_name__ () {
+        #? Description:
+        #?   Replace the value of the option by the name in the config file.
+        #?
+        #? Usage:
+        #?   __replace_option_value_by_name__ FILE NAME VALUE
+        #?
+        #? Regexp:
+        #?   (^\|[^a-zA-Z0-9_])
+        #?     * match word boundary
+        #?     * works for both GNU and BSD sed
+        #?
+        #?   [^a-zA-Z0-9_-@%+:.]
+        #?     * match any character except a-zA-Z0-9_-@%+:.
+        #?     * if the value contains any characters other than the patten, it will be single quoted.
+        #?
+        declare file=${1:?} name=${2:?} value=$3
+        declare csq # conditionally single quote the value
+
+        if [[ "$value" =~ [^-0-9a-zA-Z@%_+:.] ]]; then
+            csq="'"
+        fi
+        x-util-sed-regex-inplace "s|(^\|[^a-zA-Z0-9_])${name}=[^\"]*|\1${name}=${csq}${value}${csq}|" "$file"
+    }
 
     function __init_config__ () {
         declare file=${1:?} stack=${2:?}
@@ -201,19 +261,8 @@ function config () {
         xsh log info "generating config file: $file ..."
         aws-cfn-deploy -g > "$file"
 
-        # +-------+----+
-        # | stack | n  |
-        # +=======+====+
-        # | 00    | 00 |
-        # +-------+----+
-        # | 0     | 0  |
-        # +-------+----+
-        # | > 0   | 1  |
-        # +-------+----+
-        declare n=$stack
-        if [[ $n -gt 0 ]]; then
-            n=1
-        fi
+        declare stack_type
+        stack_type=$(__get_stack_type__ "$stack")
 
         # update DEPENDS LAMBDA LOGICAL_ID OPTIONS
         declare param
@@ -224,64 +273,67 @@ function config () {
                                     d
                                 }" "$file" \
                 <<< "$(cat "config-templates/$param-COMMON.conf" \
-                        "config-templates/$param-$n.conf")"
+                        "config-templates/$param-$stack_type.conf")"
         done
     }
 
     function __update_config__ () {
-        # shellcheck disable=SC2206
-        declare file=${1:?} stack=${2:?} base_name=${3:?} env=${4:?} random=${5:?} \
-                domain=$6 dns=$7 dns_username=$8 dns_credential=$9 v2ray=${10} \
-                ssm_admin_email=${11} ssm_domain=${12} l2tp_domain=${13} ss_domain=${14} \
-                region=${15:?}
+        declare file=${1:?} stack=${2:?} base_name=${3:?} region=${4:?}
 
         xsh log info "updating config file: $file ..."
 
-        # shellcheck disable=SC2034
-        declare STACK_NAME=$base_name-$stack \
-                ENVIRONMENT=$env \
-                RANDOM_STACK_NAME_SUFFIX=$random
+        # use subshell to volatilize the modifications for the variables to the caller
+        (
+            # shellcheck disable=SC2034
+            declare STACK_NAME=$base_name-$stack
 
-        # update:
-        #   STACK_NAME ENVIRONMENT RANDOM_STACK_NAME_SUFFIX
-        declare param
-        for param in STACK_NAME ENVIRONMENT RANDOM_STACK_NAME_SUFFIX; do
-            xsh log info "> updating $param ..."
-            x-util-sed-inplace "s|^$param=[^\"]*|$param=${!param}|" "$file"
-        done
+            __set_to_prefix_if_prefix_is_empty__ XACVC_XACC_ STACK_NAME
 
-        # shellcheck disable=SC2034
-        declare KeyPairName="aws-ek-$base_name-$stack-$env-$region" \
-                Domain DomainNameServer DomainNameServerUsername DomainNameServerCredential EnableV2ray \
-                SSMAdminEmail SSMDomain L2TPDomain SSDomain
+            # update
+            declare var config_var
+            for var in "${XSH_AWS_CFN_VPN__CONFIG_VARS[@]}"; do
+                config_var=${var#XACVC_XACC_}
+                xsh log info "> updating $config_var ..."
+                x-util-sed-inplace "s|^$config_var=[^\"]*|$config_var=${!var}|" "$file"
+            done
 
-        # shellcheck disable=SC2034
-        if [[ -n $domain ]]; then
-            Domain=$domain
-            DomainNameServer=$dns
-            DomainNameServerUsername=$dns_username
-            DomainNameServerCredential=$dns_credential
-            EnableV2ray=$v2ray
-            SSMAdminEmail=$ssm_admin_email
-            SSMDomain=$ssm_domain
-            L2TPDomain=$l2tp_domain
-            SSDomain=$ss_domain
-        fi
+            declare stack_type
+            stack_type=$(__get_stack_type__ "$stack")
 
-        # update OPTIONS:
-        #   KeyPairName Domain DomainNameServer DomainNameServerUsername DomainNameServerCredential EnableV2ray
-        #   SSMAdminEmail SSMDomain L2TPDomain SSDomain
-        for param in KeyPairName Domain DomainNameServer DomainNameServerUsername DomainNameServerCredential EnableV2ray \
-                SSMAdminEmail SSMDomain L2TPDomain SSDomain; do
-            xsh log info "> updating OPTIONS: $param ..."
-            # (^\|[^a-zA-Z0-9_]): to match word boundary, for both GNU and BSD sed
-            x-util-sed-regex-inplace "s|(^\|[^a-zA-Z0-9_])$param=[^\"]*|\1$param=${!param}|" "$file"
-        done
+            # shellcheck disable=SC2034
+            declare KeyPairName="aws-ek-$base_name-$stack-$XACVC_XACC_ENVIRONMENT-$region"
 
-        # update OPTIONS:
-        #   VpcCidrBlock SubnetCidrBlocks
-        xsh log info "> updating OPTIONS: VpcCidrBlock SubnetCidrBlocks ..."
-        x-util-sed-inplace "/CidrBlock/ s|<N>|$((stack))|g" "$file"
+            __set_to_prefix_if_prefix_is_empty__ XACVC_XACC_OPTIONS_ KeyPairName
+
+            if [[ ( $stack_type == 0 && ( -n $XACVC_XACC_OPTIONS_SSMDomainNameServerEnv && -n $XACVC_XACC_OPTIONS_L2TPDomainNameServerEnv ) ) || \
+                  ( $stack_type == 1 && -n $XACVC_XACC_OPTIONS_SSDomainNameServerEnv ) || \
+                  ( $stack_type == 00 && ( -n $XACVC_XACC_OPTIONS_SSMDomainNameServerEnv && -n $XACVC_XACC_OPTIONS_L2TPDomainNameServerEnv && -n $XACVC_XACC_OPTIONS_SSDomainNameServerEnv ) ) ]]; then
+                unset XACVC_XACC_OPTIONS_DomainNameServerEnv
+            fi
+
+            if [[ $stack_type == 0 ]]; then
+                unset XACVC_XACC_OPTIONS_SSDomain XACVC_XACC_OPTIONS_SSDomainNameServerEnv \
+                      XACVC_XACC_OPTIONS_SSV2Ray
+            fi
+
+            if [[ $stack_type == 1 ]]; then
+                unset XACVC_XACC_OPTIONS_SSMAdminEmail XACVC_XACC_OPTIONS_SSMDomain \
+                      XACVC_XACC_OPTIONS_SSMDomainNameServerEnv XACVC_XACC_OPTIONS_L2TPDomain \
+                      XACVC_XACC_OPTIONS_L2TPDomainNameServerEnv
+            fi
+
+            # update OPTIONS
+            for var in "${XSH_AWS_CFN_VPN__CONFIG_OPTIONS_VARS[@]}"; do
+                config_var=${var#XACVC_XACC_OPTIONS_}
+                xsh log info "> updating OPTIONS: $config_var ..."
+                __replace_option_value_by_name__ "$file" "$config_var" "${!var}"
+            done
+
+            # update OPTIONS:
+            #   VpcCidrBlock SubnetCidrBlocks
+            xsh log info "> updating OPTIONS: VpcCidrBlock SubnetCidrBlocks ..."
+            x-util-sed-inplace "/CidrBlock/ s|<N>|$((stack))|g" "$file"
+        )
     }
 
     function __update_node_config__ () {
@@ -295,8 +347,7 @@ function config () {
             input_key=${item##*:}
             value="$(aws-cfn-stack-output-get "$mgr_stack_json" "$output_key")"
             xsh log info "> updating OPTIONS: $input_key ..."
-            # (^\|[^a-zA-Z0-9_]): to match word boundary, for both GNU and BSD sed
-            x-util-sed-regex-inplace "s|(^\|[^a-zA-Z0-9_])${input_key}=[^\"]*|\1${input_key}=${value}|" "$file"
+            __replace_option_value_by_name__ "$file" "$input_key" "$value"
         done
     }
 
@@ -311,29 +362,68 @@ function config () {
             -o text
     }
 
+    function __set_to_prefix_if_prefix_is_empty__ () {
+        #? Description:
+        #?   Set the value of the variables with the prefix if the variables with the prefix are empty.
+        #?
+        #? Usage:
+        #?   __set_to_prefix_if_prefix_is_empty__ PREFIX VAR1 VAR2 ...
+        #?
+        #? TODO:
+        #?   - [ ] generalize the functiion to support the condition to be more flexible
+        #?
+        #?   function set-(from|to)-prefix () {
+        #?       #? Usage:
+        #?       #?   set-(from|to)-prefix PREFIX VAR [...]
+        #?       #?
+        #?       declare __prefix__=${1:?} __this_vars__=("${@:2}")
+        #?   }
+        #?   
+        #?   function set-(from|to)-prefix-if () {
+        #?       #? Usage:
+        #?       #?   set-(from|to)-prefix-if CONDITION PREFIX VAR [...]
+        #?       #?
+        #?       #? Options:
+        #?       #?   CONDITION     If the condition is met, then set the variables.
+        #?       #?                 Syntax: (this|prefix)-is-[not-](set|empty|setempty)
+        #?       #?   PREFIX        The prefix used to set from/to the variables.
+        #?       #?   VAR           The name of the variables.
+        #?       #?
+        #?       #?
+        #?       declare __condition__=${1:?} __prefix__=${2:?} __this_vars__=("${@:3}")
+        #?   }
+        #?
+        declare __prefix__=${1:?}
+        declare __this_vars__=("${@:2}")
+
+        declare __prefix_var__ __this_var__
+        for __this_var__ in "${__this_vars__[@]}"; do
+            __prefix_var__=${__prefix__}${__this_var__}
+            if [[ -z ${!__prefix_var__} ]]; then
+                # shellcheck disable=SC2229
+                read -r "${__prefix_var__}" <<< "${!__this_var__}"
+            fi
+        done
+    }
+
 
     # main
+
+    # set default values for global variables
+    XACVC_BASE_DOMAIN=${XACVC_BASE_DOMAIN:-}
+    XACVC_XACC_ENVIRONMENT=${XACVC_XACC_ENVIRONMENT:-sb}
+    XACVC_XACC_RANDOM_STACK_NAME_SUFFIX=${XACVC_XACC_RANDOM_STACK_NAME_SUFFIX:-1}
+    XACVC_XACC_OPTIONS_SSV2Ray=${XACVC_XACC_OPTIONS_SSV2Ray:-0}
+    
+    # set default values
     declare region \
             stacks=( 00 ) \
             profiles \
             base_name=vpn \
-            env=${XSH_AWS_CFN_VPN_ENV:-sb} \
-            random=1 \
-            domain=${XSH_AWS_CFN_VPN_DOMAIN} \
-            dns=${XSH_AWS_CFN_VPN_DNS} \
-            dns_username=${XSH_AWS_CFN_VPN_DNS_USERNAME} \
-            dns_credential=${XSH_AWS_CFN_VPN_DNS_CREDENTIAL} \
-            plugins=( "${XSH_AWS_CFN_VPN_PLUGINS[@]}" ) \
-            v2ray=0 \
             dir \
             OPTIND OPTARG opt
 
-    xsh imports /util/getopts/extra /int/range/expand \
-                /util/sed-inplace /util/sed-regex-inplace /string/lower \
-                aws/cfg/activate aws/cfn/stack/list aws/cfn/stack/output/get \
-                aws/cfn/deploy aws/cfn/stack/desc
-
-    while getopts r:x:p:b:e:Rd:n:u:P:i:C: opt; do
+    while getopts r:x:p:b:e:Rd:C: opt; do
         case $opt in
             r)
                 region=$OPTARG
@@ -355,26 +445,13 @@ function config () {
                 base_name=$OPTARG
                 ;;
             e)
-                env=$OPTARG
+                XACVC_XACC_ENVIRONMENT=$OPTARG
                 ;;
             R)
-                random=0
+                XACVC_XACC_RANDOM_STACK_NAME_SUFFIX=0
                 ;;
             d)
-                domain=$(x-string-lower "$OPTARG")
-                ;;
-            n)
-                dns=$OPTARG
-                ;;
-            u)
-                dns_username=$OPTARG
-                ;;
-            P)
-                dns_credential=$OPTARG
-                ;;
-            i)
-                x-util-getopts-extra "$@"
-                plugins=( "${OPTARG[@]}" )
+                XACVC_BASE_DOMAIN=$(x-string-lower "$OPTARG")
                 ;;
             C)
                 dir=${OPTARG:?}
@@ -414,30 +491,23 @@ function config () {
         if_mgr_stack_json=1
     fi
 
-    # plugins
-    declare plugin
-    for plugin in "${plugins[@]}"; do
-        case $plugin in
-            v2ray)
-                v2ray=1
-                ;;
-            *)
-                xsh log warning "unsupported plugin: $plugin"
-                ;;
-        esac
-    done
+    declare SSMAdminEmail SSMDomain L2TPDomain SSDomain
 
-    # apply the derive rules for domains and email address if the root domain is set
-    if [[ -n $domain ]]; then
-        ssm_admin_email=${XSH_AWS_CFN_VPN_SSM_ADMIN_EMAIL:-admin@$domain}
-        ssm_domain=${XSH_AWS_CFN_VPN_SSM_DOMAIN:-admin.ss.$domain}
-        l2tp_domain=${XSH_AWS_CFN_VPN_L2TP_DOMAIN:-vpn.$domain}
+    # apply the derivation rules for domains and email address if base domain is set
+    # shellcheck disable=SC2034
+    if [[ -n ${XACVC_BASE_DOMAIN} ]]; then
+        SSMAdminEmail=admin@${XACVC_BASE_DOMAIN}
+        SSMDomain=admin.ss.${XACVC_BASE_DOMAIN}
+        L2TPDomain=vpn.${XACVC_BASE_DOMAIN}
 
-        if [[ $v2ray -eq 1 ]]; then
-            ss_domain=${XSH_AWS_CFN_VPN_SS_DOMAIN:-v2ray.ss.$domain}
+        if [[ $XACVC_XACC_OPTIONS_SSV2Ray -eq 1 ]]; then
+            SSDomain=v2ray.ss.${XACVC_BASE_DOMAIN}
         else
-            ss_domain=${XSH_AWS_CFN_VPN_SS_DOMAIN:-ss.$domain}
+            SSDomain=ss.${XACVC_BASE_DOMAIN}
         fi
+
+        # apply the override values from the environment variables
+        __set_to_prefix_if_prefix_is_empty__ XACVC_XACC_OPTIONS_ SSMAdminEmail SSMDomain L2TPDomain SSDomain
     fi
 
     # loop the list to generate config files
@@ -445,7 +515,7 @@ function config () {
     for stack in "${stacks[@]}"; do
         index=$((stack))
         profile=${profiles[index]}
-        stack_name=$base_name-$stack-$env
+        stack_name=$base_name-$stack-$XACVC_XACC_ENVIRONMENT
 
         if [[ -n $profile ]]; then
             aws-cfg-activate "$profile"
@@ -460,7 +530,7 @@ function config () {
         # get the manager stack info
         if [[ $stack == 0 && if_mgr_stack_json -eq 1 ]]; then
             declare mgr_stack_name
-            if [[ $random -eq 0 ]]; then
+            if [[ $XACC_RANDOM_STACK_NAME_SUFFIX -eq 0 ]]; then
                 mgr_stack_name=$stack_name
             else
                 # guess the manager stack name
@@ -487,10 +557,9 @@ function config () {
         # generate the config file
         file=$stack_name.conf
         __init_config__ "$file" "$stack"
-        __update_config__ "$file" "$stack" "$base_name" "$env" "$random" \
-            "$domain" "$dns" "$dns_username" "$dns_credential" "$v2ray" \
-            "$ssm_admin_email" "$ssm_domain" "$l2tp_domain" "$ss_domain" \
-            "$stack_region"
+
+        # update the config file
+        __update_config__ "$file" "$stack" "$base_name" "$stack_region"
 
         # update the node config file with the output of the manager stack
         if [[ $stack -gt 0 && -n $mgr_stack_json ]]; then
