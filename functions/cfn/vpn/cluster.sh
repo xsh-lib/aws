@@ -73,12 +73,10 @@
 #? Example:
 #?   # Set the environment variables
 #?   $ export \
-#?     XSH_AWS_CFN_VPN_ENV=sb \
-#?     XSH_AWS_CFN_VPN_DOMAIN=Example.com \
-#?     XSH_AWS_CFN_VPN_DNS=name.com \
-#?     XSH_AWS_CFN_VPN_DNS_USERNAME=DomainNameServerUsername \
-#?     XSH_AWS_CFN_VPN_DNS_CREDENTIAL=DomainNameServerCredential \
-#?     XSH_AWS_CFN_VPN_PLUGINS=v2ray
+#?     XACVC_BASE_DOMAIN=Example.com \
+#?     XACVC_XACC_ENVIRONMENT=sb \
+#?     XACVC_XACC_OPTIONS_DomainNameServerEnv=PROVIDER=namecom,LEXICON_PROVIDER_NAME=namecom,LEXICON_NAMECOM_AUTH_USERNAME=your_username,LEXICON_NAMECOM_AUTH_TOKEN=your_token \
+#?     XACVC_XACC_OPTIONS_SSV2Ray=1
 #?
 #?   # Create an all-in-one stack by using AWS profile `vpn-2021-00`.
 #?   $ @cluster -x 00 -c vpn-2021
@@ -119,7 +117,7 @@ function cluster () {
         # shellcheck disable=SC2206
         declare cluster=${1:?} stacks=( ${2:?} ) region=$3
 
-        declare profiles names confs env=${XSH_AWS_CFN_VPN_ENV:-sb}
+        declare profiles names confs env=${XACVC_XACC_ENVIRONMENT:-sb}
         if [[ ${stacks[0]} == '00' ]]; then
             # single stack
             profiles=( "$cluster-00" )
