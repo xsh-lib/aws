@@ -290,7 +290,7 @@ function config () {
         xsh log info "updating node config file: $file ..."
 
         declare item output_key input_key value
-        for item in "${XSH_AWS_CFN_VPN__PARAM_MAPPINGS_MGR_OUTPUT_TO_NODE_INPUT[@]}"; do
+        for item in "${XSH_AWS_CFN_VPN__CONFIG_OPTIONS_MAPPINGS_MGR_OUTPUT_TO_NODE_INPUT[@]}"; do
             output_key=${item%%:*}
             input_key=${item##*:}
             value="$(aws-cfn-stack-output-get "$mgr_stack_json" "$output_key")"
