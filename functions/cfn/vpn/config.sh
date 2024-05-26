@@ -324,6 +324,11 @@ function config () {
 
             # update OPTIONS
             for var in "${XSH_AWS_CFN_VPN__CONFIG_OPTIONS_VARS[@]}"; do
+                # skip to update the options if the global env is not declared
+                if ! declare -p "$var" &>/dev/null; then
+                    continue
+                fi
+
                 config_var=${var#XACVC_XACC_OPTIONS_}
                 xsh log info "> updating OPTIONS: $config_var ..."
                 __replace_option_value_by_name__ "$file" "$config_var" "${!var}"
