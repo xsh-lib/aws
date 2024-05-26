@@ -530,7 +530,7 @@ function config () {
         # get the manager stack info
         if [[ $stack == 0 && if_mgr_stack_json -eq 1 ]]; then
             declare mgr_stack_name
-            if [[ $XACC_RANDOM_STACK_NAME_SUFFIX -eq 0 ]]; then
+            if [[ $XACVC_XACC_RANDOM_STACK_NAME_SUFFIX -eq 0 ]]; then
                 mgr_stack_name=$stack_name
             else
                 # guess the manager stack name
