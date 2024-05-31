@@ -120,19 +120,26 @@
 #?
 #?   - XACVC_XACC_STACK_NAME
 #?
+#?   - XACVC_XACC_OPTIONS_InstanceType
+#?   - XACVC_XACC_OPTIONS_KeyPairName
 #?   - XACVC_XACC_OPTIONS_DomainNameServerEnv
 #?
 #?   - XACVC_XACC_OPTIONS_SSMAdminUsername
 #?   - XACVC_XACC_OPTIONS_SSMAdminPassword
 #?   - XACVC_XACC_OPTIONS_SSMAdminEmail
+#?   - XACVC_XACC_OPTIONS_SSMTimeZone
+#?   - XACVC_XACC_OPTIONS_SSMVersion
 #?   - XACVC_XACC_OPTIONS_SSMDomain
 #?   - XACVC_XACC_OPTIONS_SSMDomainNameServerEnv
 #?
+#?   - XACVC_XACC_OPTIONS_SSManagerInterface
 #?   - XACVC_XACC_OPTIONS_SSManagerPort
 #?   - XACVC_XACC_OPTIONS_SSEncrypt
+#?   - XACVC_XACC_OPTIONS_SSTimeout
 #?   - XACVC_XACC_OPTIONS_SSPortBegin
 #?   - XACVC_XACC_OPTIONS_SSPortEnd
 #?   - XACVC_XACC_OPTIONS_SSV2Ray
+#?   - XACVC_XACC_OPTIONS_SSVersion
 #?   - XACVC_XACC_OPTIONS_SSDomain
 #?   - XACVC_XACC_OPTIONS_SSDomainNameServerEnv
 #?
@@ -141,6 +148,8 @@
 #?   - XACVC_XACC_OPTIONS_L2TPSharedKey
 #?   - XACVC_XACC_OPTIONS_L2TPDomain
 #?   - XACVC_XACC_OPTIONS_L2TPDomainNameServerEnv
+#?   - XACVC_XACC_OPTIONS_L2TPPrimaryDNS
+#?   - XACVC_XACC_OPTIONS_L2TPSecondaryDNS
 #?
 #?   - XACVC_XACC_OPTIONS_DomainNameServerEnv
 #?
