@@ -37,7 +37,7 @@ set -eo pipefail
 #?   https://docs.aws.amazon.com/ses/latest/DeveloperGuide/send-email-sendmail.html
 #?
 #? Example:
-#?   $ @setup -d yourdomain.com -r us-west-2 -u smtp_username -p smtp_password -m PLAIN
+#?   $ @setup -d example.com -r us-west-2 -u smtp_username -p smtp_password -m PLAIN
 #?
 
 # set default
