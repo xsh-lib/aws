@@ -73,7 +73,7 @@
 #? Example:
 #?   # Set the environment variables
 #?   $ export \
-#?     XACVC_BASE_DOMAIN=Example.com \
+#?     XACVC_BASE_DOMAIN=example.com \
 #?     XACVC_XACC_ENVIRONMENT=sb \
 #?     XACVC_XACC_OPTIONS_DomainNameServerEnv=PROVIDER=namecom,LEXICON_PROVIDER_NAME=namecom,LEXICON_NAMECOM_AUTH_USERNAME=your_username,LEXICON_NAMECOM_AUTH_TOKEN=your_token \
 #?     XACVC_XACC_OPTIONS_SSV2Ray=1

@@ -196,14 +196,19 @@
 #?   - [DEPENDS|LAMBDA|LOGICAL_ID|OPTIONS]-[COMMON|00|0|1].conf
 #?
 #? Example:
-#?   # Create 1 manager config file using domain plus the Nameserver API enabled:
-#?   $ @config -x 0 -p vpn-{0..2} -R -d example.com -n name.com -u myuser -P mytoken
+#?   # Set the environment variables for the base domain and the DNS API:
+#?   $ export \
+#?     XACVC_BASE_DOMAIN=example.com \
+#?     XACVC_XACC_OPTIONS_DomainNameServerEnv=PROVIDER=namecom,LEXICON_PROVIDER_NAME=namecom,LEXICON_NAMECOM_AUTH_USERNAME=your_username,LEXICON_NAMECOM_AUTH_TOKEN=your_token
+#?
+#?   # Create 1 manager config file using domain plus the DNS API enabled:
+#?   $ @config -x 0 -p vpn-{0..2} -R
 #?
 #?   # Deploy the manager stack:
 #?   $ @deploy -x 0 -p vpn-{0..2} -c vpn-{0..2}-sb.conf
 #?
-#?   # Create 2 node config files using domain plus the Nameserver API enabled:
-#?   $ @config -x 1-2 -p vpn-{0..2} -R -d example.com -n name.com -u myuser -P mytoken
+#?   # Create 2 node config files using domain plus the DNS API enabled:
+#?   $ @config -x 1-2 -p vpn-{0..2} -R
 #?
 #?   # Deploy the node stacks:
 #?   $ @deploy -x 1-2 -p vpn-{0..2} -c vpn-{0..2}-sb.conf
