@@ -51,6 +51,9 @@
 #? @xsh /trap/err -eE
 #? @subshell
 #?
+#? @xsh imports /file/inject
+#? @xsh imports aws/region/list aws/region/long-name/get
+#?
 function ami () {
     
     function __get_ami_id__ () {
@@ -122,7 +125,7 @@ function ami () {
         #?
         declare file=${1:?} mappings=${2:?}
         printf 'updating mappings in: %s ...' "$file"
-        xsh /file/inject \
+        x-file-inject \
             -c "$mappings" \
             -p before \
             -e '^  "Outputs": \{$' \
@@ -136,8 +139,6 @@ function ami () {
     # main
     declare template amis mappings \
             OPTIND OPTARG opt
-
-    xsh imports aws/region/list aws/region/long-name/get
 
     while getopts t: opt; do
         case $opt in

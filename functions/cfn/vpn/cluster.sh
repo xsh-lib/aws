@@ -94,6 +94,10 @@
 #? @xsh /trap/err -eE
 #? @subshell
 #?
+#? @xsh imports /int/range/expand /string/upper /array/last /util/getopts/extra
+#? @xsh imports aws/cfn/vpn/ami aws/cfn/vpn/config aws/cfn/vpn/deploy aws/cfn/vpn/delete
+#?
+
 function cluster () {
 
     function __build_options__ () {
@@ -126,7 +130,7 @@ function cluster () {
         else
             # multiple stacks
             declare first=0 last
-            last=$(xsh /array/last stacks)
+            last=$(x-array-last stacks)
 
             # shellcheck disable=SC2207
             profiles=( $(seq -s ' ' -f "$cluster-%g" "$first" "$last") )
@@ -169,9 +173,6 @@ function cluster () {
     # main
     declare region stacks=( 00 ) create_cluster update_cluster delete_cluster update_ami dir \
             OPTIND OPTARG opt
-
-    xsh imports /util/getopts/extra /int/range/expand \
-                aws/cfn/vpn/config aws/cfn/vpn/deploy aws/cfn/vpn/delete
 
     while getopts r:x:c:u:d:aC: opt; do
         case $opt in
@@ -220,7 +221,7 @@ function cluster () {
 
     # update to the latest AMI
     if [[ -n $update_ami ]]; then
-        xsh aws/cfn/vpn/ami -t stack.json
+        aws-cfn-vpn-ami -t stack.json
     fi
 
     # below variables are set by __build_options__
@@ -231,7 +232,7 @@ function cluster () {
     declare operation operation_cluster_varname operation_options_varname
     for operation in create update; do
         operation_cluster_varname="${operation}_cluster"
-        operation_options_varname="$(xsh /string/upper "$operation")_OPTIONS[@]"
+        operation_options_varname="$(x-string-upper "$operation")_OPTIONS[@]"
 
         if [[ -n ${!operation_cluster_varname} ]]; then
             __build_options__ "${!operation_cluster_varname}" "${stacks[*]}" "$region"
