@@ -10,9 +10,6 @@ function echo () {
 
     for item in "${XSH_AWS_CFN__CFG_PROPERTIES[@]:?}"; do
         name=${item%%=*}
-        if xsh /array/is-array "${name}"; then
-            name="${name}[*]"
-        fi
-        printf "%s='%s'\n" "${name}" "${!name}"
+        declare | grep "^$name=" 2>/dev/null || :
     done
 }
