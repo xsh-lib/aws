@@ -264,12 +264,17 @@
 #? @xsh /trap/err -eE
 #? @subshell
 #?
+#? @xsh imports /array/search /string/lower /uri/parser /env/override /io/confirm
+#? @xsh imports aws/s3/uri/translate aws/s3/bucket/exist aws/s3/bucket/delete aws/s3/upload
+#? @xsh imports aws/cfn/cfg/echo aws/cfn/tmpl/validate aws/cfn/tmpl/upload
+#? @xsh imports aws/cfn/stack/create aws/cfn/stack/update aws/cfn/stack/delete aws/cfn/stack/event aws/cfn/stack/log
+#?
 function deploy () {
 
     function __check_config_version__ () {
         declare version=${1:?}
         # the subshell with `test -n` must be double quoted
-        test -n "$(xsh /array/search XSH_AWS_CFN__CFG_SUPPORTED_VERSIONS "$version")"
+        test -n "$(x-array-search XSH_AWS_CFN__CFG_SUPPORTED_VERSIONS "$version")"
         return $?
     }
 
@@ -309,7 +314,7 @@ function deploy () {
             # get region according to profile
             region=$(aws configure get default.region)
         fi
-        xsh /string/lower "${stack_name:?}-${region:?}-cfn-templates"
+        x-string-lower "${stack_name:?}-${region:?}-cfn-templates"
     }
 
     #? upload the template to the bucket with a default key
@@ -324,20 +329,20 @@ function deploy () {
 
         declare uri
 
-        case $(xsh /uri/parser -s "$template" | xsh /string/lower) in
+        case $(x-uri-parser -s "$template" | x-string-lower) in
             http|https)
                 # no need to upload
-                xsh aws/cfn/tmpl/validate -t "$template"
+                aws-cfn-tmpl-validate -t "$template"
                 uri=$template
                 ;;
             s3)
                 # no need to upload
-                xsh aws/cfn/tmpl/validate -t "$template"
-                uri=$(xsh aws/s3/uri/translate -s https "$template")
+                aws-cfn-tmpl-validate -t "$template"
+                uri=$(aws-s3-uri-translate -s https "$template")
                 ;;
             '')
                 # -v: do the validation
-                uri=$(xsh aws/cfn/tmpl/upload "${region_opt[@]}" -v -b "$bucket" -k "$key" -t "$template")
+                uri=$(aws-cfn-tmpl-upload "${region_opt[@]}" -v -b "$bucket" -k "$key" -t "$template")
                 ;;
             *)
                 return 255
@@ -423,15 +428,15 @@ function deploy () {
             return 255
         fi
 
-        xsh aws/cfn/cfg/echo
+        aws-cfn-cfg-echo
     fi
 
     # override config
     if [[ -n ${options[*]} ]]; then
         xsh log info "applying command line options..."
-        xsh /env/override -a -m -s = "${options[@]}"
+        x-env-override -a -m -s = "${options[@]}"
 
-        xsh aws/cfn/cfg/echo
+        aws-cfn-cfg-echo
     fi
 
     # stack name
@@ -444,7 +449,7 @@ function deploy () {
     bucket_name=$(__get_bucket_name__ "$stack_name" "$region")
 
     declare rc=0 bucket_creating bucket_created
-    xsh aws/s3/bucket/exist "$bucket_name" || rc=$?
+    aws-s3-bucket-exist "$bucket_name" || rc=$?
     # 0: Exists
     # 3: Exists but not accessable
     # 4: Dosn't exist
@@ -473,17 +478,17 @@ function deploy () {
                       "xsh log info \"cleaning environment of ${FUNCNAME[0]}.\""
 
         x-trap-return -F "${FUNCNAME[0]}" -a \
-                      "if xsh /io/confirm -t 60 -m \"skip to delete stack and template?\"; then
+                      "if x-io-confirm -t 60 -m \"skip to delete stack and template?\"; then
                           xsh log info \"skipped clean\".
                           return
                        fi"
 
         if [[ $bucket_created -eq 1 ]]; then
             # delete the whole s3 bucket on return
-            x-trap-return -F "${FUNCNAME[0]}" -a "xsh aws/s3/bucket/delete \"${bucket_name:?}\""
+            x-trap-return -F "${FUNCNAME[0]}" -a "aws-s3-bucket-delete \"${bucket_name:?}\""
         else
             # delete the individual s3 object on return
-            x-trap-return -F "${FUNCNAME[0]}" -a "aws s3 rm \"$(xsh aws/s3/uri/translate -s s3 "$uri")\""
+            x-trap-return -F "${FUNCNAME[0]}" -a "aws s3 rm \"$(aws-s3-uri-translate -s s3 "$uri")\""
         fi
     fi
 
@@ -507,7 +512,7 @@ function deploy () {
         # trap clean commands
         if [[ $DELETE -eq 1 && $bucket_created -ne 1 ]]; then
             # delete the individual s3 object on return
-            x-trap-return -F "${FUNCNAME[0]}" -a "aws s3 rm \"$(xsh aws/s3/uri/translate -s s3 "$depended_uri")\""
+            x-trap-return -F "${FUNCNAME[0]}" -a "aws s3 rm \"$(aws-s3-uri-translate -s s3 "$depended_uri")\""
         fi
 
         OPTIONS+=( "${key:?}=${depended_uri:?}" )
@@ -537,12 +542,12 @@ function deploy () {
         s3key=${prekey:?}/$(basename "$zipfile")
         # upload depended lambda
         xsh log info "uploading depended lambda: $zipfile"
-        uri=$(xsh aws/s3/upload "${region_opt[@]}" -b "$bucket_name" -k "$s3key" "$zipfile")
+        uri=$(aws-s3-upload "${region_opt[@]}" -b "$bucket_name" -k "$s3key" "$zipfile")
 
         # trap clean commands
         if [[ $DELETE -eq 1 && $bucket_created -ne 1 ]]; then
             # delete the individual s3 object on return
-            x-trap-return -F "${FUNCNAME[0]}" -a "aws s3 rm \"$(xsh aws/s3/uri/translate -s s3 "$uri")\""
+            x-trap-return -F "${FUNCNAME[0]}" -a "aws s3 rm \"$(aws-s3-uri-translate -s s3 "$uri")\""
         fi
 
         OPTIONS+=( "${param_name_s3bucket:?}=${bucket_name:?}" )
@@ -563,15 +568,15 @@ function deploy () {
     case $update in
         changeset)
             xsh log info "updating stack by change set: $stack_name"
-            xsh aws/cfn/stack/update "${region_opt[@]}" -s "$stack_name" -S -t "$template" "${pass_options[@]}" \
+            aws-cfn-stack-update "${region_opt[@]}" -s "$stack_name" -S -t "$template" "${pass_options[@]}" \
                 || ret=$?
             ;;
         direct)
             xsh log info "updating stack directly: $stack_name"
-            if xsh /io/confirm \
+            if x-io-confirm \
                    -m "Direct update may cause unexpected reources recreation/replacement. Are You Sure?" \
                    -t 30; then
-                xsh aws/cfn/stack/update "${region_opt[@]}" -s "$stack_name" -D -t "$template" "${pass_options[@]}" \
+                aws-cfn-stack-update "${region_opt[@]}" -s "$stack_name" -D -t "$template" "${pass_options[@]}" \
                     || ret=$?
             else
                 ret=1
@@ -588,7 +593,7 @@ function deploy () {
                 pass_options+=( -R )
             fi
 
-            xsh aws/cfn/stack/create "${region_opt[@]}" -s "$stack_name" -t "$template" "${pass_options[@]}" \
+            aws-cfn-stack-create "${region_opt[@]}" -s "$stack_name" -t "$template" "${pass_options[@]}" \
                 || ret=$?
             ;;
     esac
@@ -596,7 +601,7 @@ function deploy () {
     # trap clean commands
     if [[ $DELETE -eq 1 ]]; then
         x-trap-return -F "${FUNCNAME[0]}" -a \
-                      "xsh aws/cfn/stack/delete ${region_opt[*]} -s \"$stack_name\""
+                      "aws-cfn-stack-delete ${region_opt[*]} -s \"$stack_name\""
     fi
 
     if [[ $ret -eq 0 ]]; then
@@ -604,9 +609,9 @@ function deploy () {
     else
         xsh log error "failed."
         (
-            xsh aws/cfn/stack/event "${region_opt[@]}" -e -s "$stack_name"
+            aws-cfn-stack-event "${region_opt[@]}" -e -s "$stack_name"
             if [[ -n $LOGICAL_ID ]]; then
-                xsh aws/cfn/stack/log "${region_opt[@]}" -w -s "$stack_name" -l "$LOGICAL_ID"
+                aws-cfn-stack-log "${region_opt[@]}" -w -s "$stack_name" -l "$LOGICAL_ID"
             fi
         )
     fi

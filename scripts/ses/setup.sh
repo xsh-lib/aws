@@ -27,7 +27,7 @@ set -eo pipefail
 #?   [-m]          Move the SES service out of the sandbox.
 #?
 #? Example:
-#?   $ @setup -d yourdomain.com -u iam_username -m
+#?   $ @setup -d example.com -u iam_username -m
 #?
 #? Reference:
 #?   https://docs.aws.amazon.com/ses/latest/DeveloperGuide/quick-start.html

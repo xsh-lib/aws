@@ -72,14 +72,19 @@
 #?   Change the current directory to DIR before doing anything.
 #?
 #? Example:
-#?   # Create 1 manager config file using domain plus the Nameserver API enabled:
-#?   $ @config -x 0 -p vpn-{0..2} -R -d example.com -n name.com -u myuser -P mytoken
+#?   # Set the environment variables for the base domain and the DNS API:
+#?   $ export \
+#?     XACVC_BASE_DOMAIN=example.com \
+#?     XACVC_XACC_OPTIONS_DomainNameServerEnv=PROVIDER=namecom,LEXICON_PROVIDER_NAME=namecom,LEXICON_NAMECOM_AUTH_USERNAME=your_username,LEXICON_NAMECOM_AUTH_TOKEN=your_token
+#?
+#?   # Create 1 manager config file using domain plus the DNS API enabled:
+#?   $ @config -x 0 -p vpn-{0..2} -R
 #?
 #?   # Deploy the manager stack:
 #?   $ @deploy -x 0 -p vpn-{0..2} -c vpn-{0..2}-sb.conf
 #?
-#?   # Create 2 node config files using domain plus the Nameserver API enabled:
-#?   $ @config -x 1-2 -p vpn-{0..2} -R -d example.com -n name.com -u myuser -P mytoken
+#?   # Create 2 node config files using domain plus the DNS API enabled:
+#?   $ @config -x 1-2 -p vpn-{0..2} -R
 #?
 #?   # Deploy the node stacks:
 #?   $ @deploy -x 1-2 -p vpn-{0..2} -c vpn-{0..2}-sb.conf
@@ -90,6 +95,9 @@
 #? @xsh /trap/err -eE
 #? @subshell
 #?
+#? @xsh imports /int/range/expand /util/getopts/extra
+#? @xsh imports aws/cfg/activate aws/ec2/key/exist aws/ec2/key/create aws/cfn/deploy
+#?
 function deploy () {
 
     function __get_keypair_name_from_config__ () {
@@ -99,10 +107,10 @@ function deploy () {
 
     function __setup_keypair__ () {
         declare name=${1:?} region=${2:?}
-        if ! xsh aws/ec2/key/exist -r "$region" "$name"; then
+        if ! aws-ec2-key-exist -r "$region" "$name"; then
             xsh log info "creating EC2 key pair: $name ..."
             mkdir -p ~/.ssh
-            xsh aws/ec2/key/create -r "$region" -f ~/.ssh/"$name" "$name"
+            aws-ec2-key-create -r "$region" -f ~/.ssh/"$name" "$name"
         fi
     }
 
@@ -110,10 +118,10 @@ function deploy () {
         declare conf=${1:?} region=${2:?} name=$3
         if [[ -z $name ]]; then
             xsh log info "creating stack with config: $conf ..."
-            xsh aws/cfn/deploy -r "$region" -t stack.json -c "$conf"
+            aws-cfn-deploy -r "$region" -t stack.json -c "$conf"
         else
             xsh log info "updating stack $name with config: $conf ..."
-            echo yes | xsh aws/cfn/deploy -r "$region" -t stack.json -c "$conf" -s "$name" -D
+            echo yes | aws-cfn-deploy -r "$region" -t stack.json -c "$conf" -s "$name" -D
         fi
     }
 
@@ -121,8 +129,6 @@ function deploy () {
     # main
     declare region stacks=( 00 ) profiles confs names dir \
             OPTIND OPTARG opt
-
-    xsh imports /util/getopts/extra /int/range/expand aws/cfg/activate
 
     while getopts r:x:p:c:s:C: opt; do
         case $opt in

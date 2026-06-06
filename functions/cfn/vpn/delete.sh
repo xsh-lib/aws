@@ -56,11 +56,12 @@
 #? @xsh /trap/err -eE
 #? @subshell
 #?
+#? xsh imports /int/range/expand /util/getopts/extra
+#? xsh imports aws/cfg/activate aws/cfn/stack/delete
+#?
 function delete () {
     declare region stacks=( 00 ) profiles names \
             OPTIND OPTARG opt
-
-    xsh imports /util/getopts/extra /int/range/expand aws/cfg/activate
 
     while getopts r:x:p:s: opt; do
         case $opt in
@@ -113,6 +114,6 @@ function delete () {
         fi
 
         xsh log info "deleting stack: $name ..."
-        xsh aws/cfn/stack/delete -r "$stack_region" -s "$name"
+        aws-cfn-stack-delete -r "$stack_region" -s "$name"
     done
 }

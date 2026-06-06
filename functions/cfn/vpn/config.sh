@@ -120,36 +120,60 @@
 #?
 #?   - XACVC_XACC_STACK_NAME
 #?
-#?   - XACVC_XACC_OPTIONS_InstanceType
+#?   - XACVC_XACC_OPTIONS_VpcCidrBlock
+#?   - XACVC_XACC_OPTIONS_SubnetCidrBlocks
 #?   - XACVC_XACC_OPTIONS_KeyPairName
+#?   - XACVC_XACC_OPTIONS_InstanceType
+#?   - XACVC_XACC_OPTIONS_EipDomain
 #?   - XACVC_XACC_OPTIONS_DomainNameServerEnv
+#?   - XACVC_XACC_OPTIONS_SSPortBegin
+#?   - XACVC_XACC_OPTIONS_SSPortEnd
 #?
+#?   - XACVC_XACC_OPTIONS_EnableSSM
+#?   - XACVC_XACC_OPTIONS_SSMDomain
+#?   - XACVC_XACC_OPTIONS_SSMDomainNameServerEnv
 #?   - XACVC_XACC_OPTIONS_SSMAdminUsername
 #?   - XACVC_XACC_OPTIONS_SSMAdminPassword
 #?   - XACVC_XACC_OPTIONS_SSMAdminEmail
 #?   - XACVC_XACC_OPTIONS_SSMTimeZone
 #?   - XACVC_XACC_OPTIONS_SSMVersion
-#?   - XACVC_XACC_OPTIONS_SSMDomain
-#?   - XACVC_XACC_OPTIONS_SSMDomainNameServerEnv
 #?
+#?   - XACVC_XACC_OPTIONS_EnableSSN
+#?   - XACVC_XACC_OPTIONS_SSDomain
+#?   - XACVC_XACC_OPTIONS_SSDomainNameServerEnv
 #?   - XACVC_XACC_OPTIONS_SSManagerInterface
 #?   - XACVC_XACC_OPTIONS_SSManagerPort
 #?   - XACVC_XACC_OPTIONS_SSEncrypt
 #?   - XACVC_XACC_OPTIONS_SSTimeout
-#?   - XACVC_XACC_OPTIONS_SSPortBegin
-#?   - XACVC_XACC_OPTIONS_SSPortEnd
 #?   - XACVC_XACC_OPTIONS_SSV2Ray
 #?   - XACVC_XACC_OPTIONS_SSVersion
-#?   - XACVC_XACC_OPTIONS_SSDomain
-#?   - XACVC_XACC_OPTIONS_SSDomainNameServerEnv
 #?
+#?   - XACVC_XACC_OPTIONS_EnableVpcPeerAcceptor
+#?   - XACVC_XACC_OPTIONS_EnableVpcPeerRequester
+#?   - XACVC_XACC_OPTIONS_SSMAccountId
+#?   - XACVC_XACC_OPTIONS_VpcPeerAcceptorVpcId
+#?   - XACVC_XACC_OPTIONS_VpcPeerAcceptorRegion
+#?   - XACVC_XACC_OPTIONS_VpcPeerAcceptorRoleArn
+#?   - XACVC_XACC_OPTIONS_VpcPeerAcceptorCidrBlock
+#?   - XACVC_XACC_OPTIONS_VpcPeerAcceptorSqsQueueUrl
+#?
+#?   - XACVC_XACC_OPTIONS_EnableLexBot
+#?   - XACVC_XACC_OPTIONS_LexBotRegion
+#?
+#?   - XACVC_XACC_OPTIONS_EnableConfigConsumer
+#?   - XACVC_XACC_OPTIONS_EnableConfigProvider
+#?   - XACVC_XACC_OPTIONS_SnsTopicArn
+#?
+#?   - XACVC_XACC_OPTIONS_EnableL2TP
+#?   - XACVC_XACC_OPTIONS_L2TPDomain
+#?   - XACVC_XACC_OPTIONS_L2TPDomainNameServerEnv
 #?   - XACVC_XACC_OPTIONS_L2TPUsername
 #?   - XACVC_XACC_OPTIONS_L2TPPassword
 #?   - XACVC_XACC_OPTIONS_L2TPSharedKey
-#?   - XACVC_XACC_OPTIONS_L2TPDomain
-#?   - XACVC_XACC_OPTIONS_L2TPDomainNameServerEnv
 #?   - XACVC_XACC_OPTIONS_L2TPPrimaryDNS
 #?   - XACVC_XACC_OPTIONS_L2TPSecondaryDNS
+#?
+#?   Explaination for `XACVC_XACC_OPTIONS_[SSM|SS|L2TP]DomainNameServerEnv`:
 #?
 #?   - XACVC_XACC_OPTIONS_DomainNameServerEnv
 #?
@@ -196,14 +220,19 @@
 #?   - [DEPENDS|LAMBDA|LOGICAL_ID|OPTIONS]-[COMMON|00|0|1].conf
 #?
 #? Example:
-#?   # Create 1 manager config file using domain plus the Nameserver API enabled:
-#?   $ @config -x 0 -p vpn-{0..2} -R -d example.com -n name.com -u myuser -P mytoken
+#?   # Set the environment variables for the base domain and the DNS API:
+#?   $ export \
+#?     XACVC_BASE_DOMAIN=example.com \
+#?     XACVC_XACC_OPTIONS_DomainNameServerEnv=PROVIDER=namecom,LEXICON_PROVIDER_NAME=namecom,LEXICON_NAMECOM_AUTH_USERNAME=your_username,LEXICON_NAMECOM_AUTH_TOKEN=your_token
+#?
+#?   # Create 1 manager config file using domain plus the DNS API enabled:
+#?   $ @config -x 0 -p vpn-{0..2} -R
 #?
 #?   # Deploy the manager stack:
 #?   $ @deploy -x 0 -p vpn-{0..2} -c vpn-{0..2}-sb.conf
 #?
-#?   # Create 2 node config files using domain plus the Nameserver API enabled:
-#?   $ @config -x 1-2 -p vpn-{0..2} -R -d example.com -n name.com -u myuser -P mytoken
+#?   # Create 2 node config files using domain plus the DNS API enabled:
+#?   $ @config -x 1-2 -p vpn-{0..2} -R
 #?
 #?   # Deploy the node stacks:
 #?   $ @deploy -x 1-2 -p vpn-{0..2} -c vpn-{0..2}-sb.conf
@@ -239,6 +268,24 @@ function config () {
         fi
     }
 
+    function __unset_options_env_for_stack_type__ () {
+        declare stack_type=${1:?}
+
+        if [[ ( $stack_type == 0 && ( -n $XACVC_XACC_OPTIONS_SSMDomainNameServerEnv && -n $XACVC_XACC_OPTIONS_L2TPDomainNameServerEnv ) ) || \
+                ( $stack_type == 1 && -n $XACVC_XACC_OPTIONS_SSDomainNameServerEnv ) || \
+                ( $stack_type == 00 && ( -n $XACVC_XACC_OPTIONS_SSMDomainNameServerEnv && -n $XACVC_XACC_OPTIONS_L2TPDomainNameServerEnv && -n $XACVC_XACC_OPTIONS_SSDomainNameServerEnv ) ) ]]; then
+            unset XACVC_XACC_OPTIONS_DomainNameServerEnv
+        fi
+
+        if [[ $stack_type == 0 ]]; then
+            # shellcheck disable=SC2068
+            unset ${XSH_AWS_CFN_VPN__CONFIG_OPTIONS_SS_VARS[@]}
+        elif [[ $stack_type == 1 ]]; then
+            # shellcheck disable=SC2068
+            unset ${XSH_AWS_CFN_VPN__CONFIG_OPTIONS_SSM_VARS[@]} ${XSH_AWS_CFN_VPN__CONFIG_OPTIONS_L2TP_VARS[@]}
+        fi
+    }
+
     function __replace_option_value_by_name__ () {
         #? Description:
         #?   Replace the value of the option by the name in the config file.
@@ -252,7 +299,7 @@ function config () {
         #?     * works for both GNU and BSD sed
         #?
         #?   [^a-zA-Z0-9_-@%+:.]
-        #?     * match any character except a-zA-Z0-9_-@%+:.
+        #?     * match any character except -0-9a-zA-Z@%_+:.
         #?     * if the value contains any characters other than the patten, it will be single quoted.
         #?
         declare file=${1:?} name=${2:?} value=$3
@@ -306,38 +353,17 @@ function config () {
                 x-util-sed-inplace "s|^$config_var=[^\"]*|$config_var=${!var}|" "$file"
             done
 
-            declare stack_type
-            stack_type=$(__get_stack_type__ "$stack")
-
             # shellcheck disable=SC2034
             declare KeyPairName="aws-ek-$base_name-$stack-$XACVC_XACC_ENVIRONMENT-$region"
 
             __set_to_prefix_if_prefix_is_empty__ XACVC_XACC_OPTIONS_ KeyPairName
 
-            if [[ ( $stack_type == 0 && ( -n $XACVC_XACC_OPTIONS_SSMDomainNameServerEnv && -n $XACVC_XACC_OPTIONS_L2TPDomainNameServerEnv ) ) || \
-                  ( $stack_type == 1 && -n $XACVC_XACC_OPTIONS_SSDomainNameServerEnv ) || \
-                  ( $stack_type == 00 && ( -n $XACVC_XACC_OPTIONS_SSMDomainNameServerEnv && -n $XACVC_XACC_OPTIONS_L2TPDomainNameServerEnv && -n $XACVC_XACC_OPTIONS_SSDomainNameServerEnv ) ) ]]; then
-                unset XACVC_XACC_OPTIONS_DomainNameServerEnv
-            fi
-
-            if [[ $stack_type == 0 ]]; then
-                unset XACVC_XACC_OPTIONS_SSDomain XACVC_XACC_OPTIONS_SSDomainNameServerEnv \
-                      XACVC_XACC_OPTIONS_SSV2Ray
-            fi
-
-            if [[ $stack_type == 1 ]]; then
-                unset XACVC_XACC_OPTIONS_SSMAdminEmail XACVC_XACC_OPTIONS_SSMDomain \
-                      XACVC_XACC_OPTIONS_SSMDomainNameServerEnv XACVC_XACC_OPTIONS_L2TPDomain \
-                      XACVC_XACC_OPTIONS_L2TPDomainNameServerEnv
-            fi
+            declare stack_type
+            stack_type=$(__get_stack_type__ "$stack")
+            __unset_options_env_for_stack_type__ "$stack_type"
 
             # update OPTIONS
-            for var in "${XSH_AWS_CFN_VPN__CONFIG_OPTIONS_VARS[@]}"; do
-                # skip to update the options if the global env is not declared
-                if ! declare -p "$var" &>/dev/null; then
-                    continue
-                fi
-
+            for var in "${!XACVC_XACC_OPTIONS_@}"; do
                 config_var=${var#XACVC_XACC_OPTIONS_}
                 xsh log info "> updating OPTIONS: $config_var ..."
                 __replace_option_value_by_name__ "$file" "$config_var" "${!var}"
@@ -418,6 +444,25 @@ function config () {
                 read -r "${__prefix_var__}" <<< "${!__this_var__}"
             fi
         done
+    }
+
+    # shellcheck disable=SC2034
+    function __apply_domain_derivation_rule__ () {    
+        declare base_domain=${1:?} v2ray=${2:-0}
+        declare SSMAdminEmail SSMDomain L2TPDomain SSDomain
+
+        SSMAdminEmail=admin@${base_domain}
+        SSMDomain=admin.ss.${base_domain}
+        L2TPDomain=vpn.${base_domain}
+
+        if [[ $v2ray -eq 1 ]]; then
+            SSDomain=v2ray.ss.${base_domain}
+        else
+            SSDomain=ss.${base_domain}
+        fi
+
+        # apply the override values from the environment variables
+        __set_to_prefix_if_prefix_is_empty__ XACVC_XACC_OPTIONS_ SSMAdminEmail SSMDomain L2TPDomain SSDomain
     }
 
 
@@ -505,23 +550,9 @@ function config () {
         if_mgr_stack_json=1
     fi
 
-    declare SSMAdminEmail SSMDomain L2TPDomain SSDomain
-
     # apply the derivation rules for domains and email address if base domain is set
-    # shellcheck disable=SC2034
     if [[ -n ${XACVC_BASE_DOMAIN} ]]; then
-        SSMAdminEmail=admin@${XACVC_BASE_DOMAIN}
-        SSMDomain=admin.ss.${XACVC_BASE_DOMAIN}
-        L2TPDomain=vpn.${XACVC_BASE_DOMAIN}
-
-        if [[ $XACVC_XACC_OPTIONS_SSV2Ray -eq 1 ]]; then
-            SSDomain=v2ray.ss.${XACVC_BASE_DOMAIN}
-        else
-            SSDomain=ss.${XACVC_BASE_DOMAIN}
-        fi
-
-        # apply the override values from the environment variables
-        __set_to_prefix_if_prefix_is_empty__ XACVC_XACC_OPTIONS_ SSMAdminEmail SSMDomain L2TPDomain SSDomain
+        __apply_domain_derivation_rule__ "$XACVC_BASE_DOMAIN" "$XACVC_XACC_OPTIONS_SSV2Ray"
     fi
 
     # loop the list to generate config files
@@ -542,7 +573,7 @@ function config () {
         fi
 
         # get the manager stack info
-        if [[ $stack == 0 && if_mgr_stack_json -eq 1 ]]; then
+        if [[ $stack == 0 && $if_mgr_stack_json -eq 1 ]]; then
             declare mgr_stack_name
             if [[ $XACVC_XACC_RANDOM_STACK_NAME_SUFFIX -eq 0 ]]; then
                 mgr_stack_name=$stack_name

@@ -25,7 +25,7 @@
 #?   [-f FROM]     The email address that is sending the email.
 #?                 This email address must be either individually verified with Amazon
 #?                 SES, or from a domain that has been verified with Amazon SES.
-#?                 The default is `no-reply@<yourdomain.com>`.
+#?                 The default is `no-reply@<example.com>`.
 #?
 #?   [-s SUBJECT]  The subject of the message.
 #?                 The default is `aws/ses/send test email`.
