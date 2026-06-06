@@ -5,11 +5,19 @@
 #?   of Region-to-AMI mapping as the key `Mappings` in aws-cfn-vpn template.
 #?   It takes a few minutes to finish, please be patient.
 #?
+#?   For each region the latest Amazon Linux 2 AMI is fetched for BOTH the
+#?   x86_64 architecture (emitted as keys `nameAmd64`/`AMIAmd64`) and, where
+#?   published, the arm64 architecture (emitted as keys `nameArm64`/`AMIArm64`).
+#?   The two architectures use symmetric, explicitly-labelled keys (Amd64 ==
+#?   x86_64; Arm64 == aarch64). The arm64 keys let the aws-cfn-vpn template
+#?   launch Graviton instance types (t4g.*, m6g.*, etc.) via its
+#?   `Architecture=arm64` parameter.
+#?
 #?   All the AMIs are AWS free tier eligible and have the types:
 #?     * ImageOwnerAlias: amazon
 #?     * Public: true
 #?     * State: available
-#?     * Architecture: x86_64
+#?     * Architecture: x86_64 and arm64
 #?     * Hypervisor: xen
 #?     * VirtualizationType: hvm
 #?     * Description: Amazon Linux 2 AMI*
@@ -39,9 +47,11 @@
 #?   "Mappings": {
 #?     "RegionMap": {
 #?         "ap-northeast-1": {
-#?         "name": "amzn2-ami-hvm-2.0.20240131.0-x86_64-gp2",
-#?         "AMI": "ami-02636d39193812441",
-#?         "created": "2024-01-26T19:11:44.000Z",
+#?         "nameAmd64": "amzn2-ami-hvm-2.0.20260526.0-x86_64-gp2",
+#?         "AMIAmd64": "ami-006364fbd0e812d5e",
+#?         "nameArm64": "amzn2-ami-hvm-2.0.20260526.0-arm64-gp2",
+#?         "AMIArm64": "ami-09be0d7ea855efaf9",
+#?         "created": "2026-05-26T18:12:45.000Z",
 #?         "location": "Asia Pacific (Tokyo)"
 #?         },
 #?         ...
@@ -58,12 +68,15 @@ function ami () {
     
     function __get_ami_id__ () {
         #? Usage:
-        #?   __get_ami_id__ <REGION>
+        #?   __get_ami_id__ <REGION> [ARCH]
         #?
-        declare region=${1:?}
+        #? Options:
+        #?   [ARCH]  CPU architecture: `x86_64` (default) or `arm64`.
+        #?
+        declare region=${1:?} arch=${2:-x86_64}
         aws ssm get-parameters \
             --region "$region" \
-            --names /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2 \
+            --names "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-${arch}-gp2" \
             --query 'Parameters[*].[Value]' \
             --output text
     }
@@ -72,20 +85,38 @@ function ami () {
         #? Usage:
         #?   __get_ami__ <REGION>
         #?
-        declare region=${1:?} filters location id
+        #? Emits a single JSON object per region carrying both the x86_64 AMI
+        #? (keys `nameAmd64`/`AMIAmd64`) and, when available, the arm64 AMI
+        #? (keys `nameArm64`/`AMIArm64`). The arm64 keys are omitted for regions
+        #? that do not publish an arm64 Amazon Linux 2 AMI, so the template's
+        #? `Fn::FindInMap [.., AMIArm64]` only resolves where arm64 is supported.
+        #?
+        declare region=${1:?} filters location id_x86 id_arm64 image_ids arm64_keys query
         filters=(
             "Name=is-public,Values=true"
             "Name=state,Values=available"
         )
         location=$(aws-region-long-name-get "$region")
-        id=$(__get_ami_id__ "$region")
-        if [[ -z $id ]]; then
+
+        id_x86=$(__get_ami_id__ "$region" x86_64)
+        if [[ -z $id_x86 ]]; then
             return
         fi
+
+        image_ids=("$id_x86")
+        arm64_keys=""
+        id_arm64=$(__get_ami_id__ "$region" arm64)
+        if [[ -n $id_arm64 ]]; then
+            image_ids+=("$id_arm64")
+            arm64_keys="nameArm64: Images[?Architecture=='arm64'] | [0].Name, AMIArm64: Images[?Architecture=='arm64'] | [0].ImageId, "
+        fi
+
+        query="{nameAmd64: Images[?Architecture=='x86_64'] | [0].Name, AMIAmd64: Images[?Architecture=='x86_64'] | [0].ImageId, ${arm64_keys}created: Images[?Architecture=='x86_64'] | [0].CreationDate, location: '${location}'}"
+
         aws ec2 describe-images \
             --region "$region" \
-            --image-ids "$id" \
-            --query 'Images[0].{name:Name,AMI:ImageId,created:CreationDate,location:'"'$location'"'}' \
+            --image-ids "${image_ids[@]}" \
+            --query "$query" \
             --filter "${filters[@]}" \
             --output json
     }
