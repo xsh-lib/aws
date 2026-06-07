@@ -17,7 +17,8 @@
 #?   [-k KEY]      S3 bucket object key.
 #?                 If omit this, a default key is generated with the basename of TEMPLATE.
 #?
-#?   [-v]          Validate the template before the upload.
+#?   [-v]          Validate the template (after the upload, via the S3 URL, so
+#?                 templates larger than the 51200-byte inline limit validate).
 #?
 #?   -t TEMPLATE   Template to upload.
 #?                 The TEMPLATE must be either of:
@@ -65,10 +66,18 @@ function upload () {
         return 255
     fi
 
+    # Upload first, then (optionally) validate via the uploaded S3 URL rather than
+    # the local file. CloudFormation's inline `--template-body` is capped at 51200
+    # bytes, while `--template-url` (S3) accepts templates up to its larger limit.
+    # Validating post-upload therefore lets large local templates (>51200 bytes)
+    # validate, which inline validation would reject with:
+    #   "templateBody ... Member must have length less than or equal to 51200".
+    declare uri
+    uri=$(xsh aws/s3/upload "${region_opt[@]}" -b "$bucket" -k "$key" -o https "$template")
+
     if [[ $validate -eq 1 ]]; then
-        # validate template
-        xsh aws/cfn/tmpl/validate -t "$template"
+        xsh aws/cfn/tmpl/validate -t "$uri"
     fi
 
-    xsh aws/s3/upload "${region_opt[@]}" -b "$bucket" -k "$key" -o https "$template"
+    printf '%s\n' "$uri"
 }
