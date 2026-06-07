@@ -568,7 +568,7 @@ function deploy () {
     case $update in
         changeset)
             xsh log info "updating stack by change set: $stack_name"
-            aws-cfn-stack-update "${region_opt[@]}" -s "$stack_name" -S -t "$template" "${pass_options[@]}" \
+            aws-cfn-stack-update "${region_opt[@]}" -s "$stack_name" -S -t "$uri" "${pass_options[@]}" \
                 || ret=$?
             ;;
         direct)
@@ -576,7 +576,7 @@ function deploy () {
             if x-io-confirm \
                    -m "Direct update may cause unexpected reources recreation/replacement. Are You Sure?" \
                    -t 30; then
-                aws-cfn-stack-update "${region_opt[@]}" -s "$stack_name" -D -t "$template" "${pass_options[@]}" \
+                aws-cfn-stack-update "${region_opt[@]}" -s "$stack_name" -D -t "$uri" "${pass_options[@]}" \
                     || ret=$?
             else
                 ret=1
@@ -593,7 +593,7 @@ function deploy () {
                 pass_options+=( -R )
             fi
 
-            aws-cfn-stack-create "${region_opt[@]}" -s "$stack_name" -t "$template" "${pass_options[@]}" \
+            aws-cfn-stack-create "${region_opt[@]}" -s "$stack_name" -t "$uri" "${pass_options[@]}" \
                 || ret=$?
             ;;
     esac
