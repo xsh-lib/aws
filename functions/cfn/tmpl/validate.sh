@@ -57,7 +57,7 @@ function validate () {
             if (( $(wc -c < "$template") <= 51200 )); then
                 aws cloudformation validate-template --template-body "$(cat "$template")" >/dev/null
             else
-                xsh log warn "template '$(basename "$template")': body size $(wc -c < "$template") bytes > 51200 limit; skipping inline validation."
+                xsh log warn "template '$(basename "$template")': body size $(wc -c < "$template") bytes > 51200 limit; skipping inline validation." >&2
             fi
             ;;
         *)
