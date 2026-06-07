@@ -519,7 +519,7 @@ function deploy () {
     done
 
     # upload lambda function
-    declare param_name_s3bucket param_name_s3key zipfile s3key
+    declare param_name_s3bucket param_name_s3key zipfile s3key lambda_uri
     for item in "${LAMBDA[@]}"; do
         if [[ -z $item ]]; then
             continue
@@ -542,12 +542,12 @@ function deploy () {
         s3key=${prekey:?}/$(basename "$zipfile")
         # upload depended lambda
         xsh log info "uploading depended lambda: $zipfile"
-        uri=$(aws-s3-upload "${region_opt[@]}" -b "$bucket_name" -k "$s3key" "$zipfile")
+        lambda_uri=$(aws-s3-upload "${region_opt[@]}" -b "$bucket_name" -k "$s3key" "$zipfile")
 
         # trap clean commands
         if [[ $DELETE -eq 1 && $bucket_created -ne 1 ]]; then
             # delete the individual s3 object on return
-            x-trap-return -F "${FUNCNAME[0]}" -a "aws s3 rm \"$(aws-s3-uri-translate -s s3 "$uri")\""
+            x-trap-return -F "${FUNCNAME[0]}" -a "aws s3 rm \"$(aws-s3-uri-translate -s s3 "$lambda_uri")\""
         fi
 
         OPTIONS+=( "${param_name_s3bucket:?}=${bucket_name:?}" )
