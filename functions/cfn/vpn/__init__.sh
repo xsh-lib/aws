@@ -38,6 +38,17 @@ XSH_AWS_CFN_VPN__CONFIG_OPTIONS_SSM_VARS=(
     XACVC_XACC_OPTIONS_SSMDomainNameServerEnv
 )
 
+#? Slack bot options are gated on `EnableSSM=1` (manager side). They are
+#? registered here so the config generator unsets them for node stacks
+#? (stack type 1), the same way it unsets the other SSM options. Otherwise a
+#? Slack signing secret set in the environment would be injected into node
+#? config files should the node template ever list the Slack options.
+XSH_AWS_CFN_VPN__CONFIG_OPTIONS_SLACK_VARS=(
+    XACVC_XACC_OPTIONS_SlackSigningSecret
+    XACVC_XACC_OPTIONS_SlackAllowedUsers
+    XACVC_XACC_OPTIONS_SlackAllowedChannels
+)
+
 XSH_AWS_CFN_VPN__CONFIG_OPTIONS_SS_VARS=(
     XACVC_XACC_OPTIONS_SSManagerInterface
     XACVC_XACC_OPTIONS_SSManagerPort
