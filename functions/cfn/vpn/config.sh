@@ -157,8 +157,10 @@
 #?   - XACVC_XACC_OPTIONS_VpcPeerAcceptorCidrBlock
 #?   - XACVC_XACC_OPTIONS_VpcPeerAcceptorSqsQueueUrl
 #?
-#?   - XACVC_XACC_OPTIONS_EnableLexBot
-#?   - XACVC_XACC_OPTIONS_LexBotRegion
+#?   - XACVC_XACC_OPTIONS_EnableSlackBot
+#?   - XACVC_XACC_OPTIONS_SlackSigningSecret
+#?   - XACVC_XACC_OPTIONS_SlackAllowedUsers
+#?   - XACVC_XACC_OPTIONS_SlackAllowedChannels
 #?
 #?   - XACVC_XACC_OPTIONS_EnableConfigConsumer
 #?   - XACVC_XACC_OPTIONS_EnableConfigProvider
@@ -282,7 +284,7 @@ function config () {
             unset ${XSH_AWS_CFN_VPN__CONFIG_OPTIONS_SS_VARS[@]}
         elif [[ $stack_type == 1 ]]; then
             # shellcheck disable=SC2068
-            unset ${XSH_AWS_CFN_VPN__CONFIG_OPTIONS_SSM_VARS[@]} ${XSH_AWS_CFN_VPN__CONFIG_OPTIONS_L2TP_VARS[@]}
+            unset ${XSH_AWS_CFN_VPN__CONFIG_OPTIONS_SSM_VARS[@]} ${XSH_AWS_CFN_VPN__CONFIG_OPTIONS_L2TP_VARS[@]} ${XSH_AWS_CFN_VPN__CONFIG_OPTIONS_SLACK_VARS[@]}
         fi
     }
 
