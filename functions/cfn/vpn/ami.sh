@@ -5,7 +5,7 @@
 #?   of Region-to-AMI mapping as the key `Mappings` in aws-cfn-vpn template.
 #?   It takes a few minutes to finish, please be patient.
 #?
-#?   For each region the latest Amazon Linux 2 AMI is fetched for BOTH the
+#?   For each region the latest Amazon Linux 2023 AMI is fetched for BOTH the
 #?   x86_64 architecture (emitted as keys `nameAmd64`/`AMIAmd64`) and, where
 #?   published, the arm64 architecture (emitted as keys `nameArm64`/`AMIArm64`).
 #?   The two architectures use symmetric, explicitly-labelled keys (Amd64 ==
@@ -18,9 +18,11 @@
 #?     * Public: true
 #?     * State: available
 #?     * Architecture: x86_64 and arm64
-#?     * Hypervisor: xen
 #?     * VirtualizationType: hvm
-#?     * Description: Amazon Linux 2 AMI*
+#?     * Description: Amazon Linux 2023 AMI*
+#?
+#?   Amazon Linux 2 reached end of support on 2026-06-30; this fetches the
+#?   AL2023 successor AMIs (kernel-default flavor, gp3-backed).
 #?
 #?   Some regions are not enabled for your account by default. Those regions
 #?   will be updated with an empty AMI object: {}.
@@ -47,11 +49,11 @@
 #?   "Mappings": {
 #?     "RegionMap": {
 #?         "ap-northeast-1": {
-#?         "nameAmd64": "amzn2-ami-hvm-2.0.20260526.0-x86_64-gp2",
-#?         "AMIAmd64": "ami-006364fbd0e812d5e",
-#?         "nameArm64": "amzn2-ami-hvm-2.0.20260526.0-arm64-gp2",
-#?         "AMIArm64": "ami-09be0d7ea855efaf9",
-#?         "created": "2026-05-26T18:12:45.000Z",
+#?         "nameAmd64": "al2023-ami-2023.12.20260608.0-kernel-6.1-x86_64",
+#?         "AMIAmd64": "ami-0c02cf818fceb9254",
+#?         "nameArm64": "al2023-ami-2023.12.20260608.0-kernel-6.1-arm64",
+#?         "AMIArm64": "ami-0c3f2b4be5dc82c2f",
+#?         "created": "2026-06-04T17:20:42.000Z",
 #?         "location": "Asia Pacific (Tokyo)"
 #?         },
 #?         ...
@@ -76,7 +78,7 @@ function ami () {
         declare region=${1:?} arch=${2:-x86_64}
         aws ssm get-parameters \
             --region "$region" \
-            --names "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-${arch}-gp2" \
+            --names "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-${arch}" \
             --query 'Parameters[*].[Value]' \
             --output text
     }
@@ -88,7 +90,7 @@ function ami () {
         #? Emits a single JSON object per region carrying both the x86_64 AMI
         #? (keys `nameAmd64`/`AMIAmd64`) and, when available, the arm64 AMI
         #? (keys `nameArm64`/`AMIArm64`). The arm64 keys are omitted for regions
-        #? that do not publish an arm64 Amazon Linux 2 AMI, so the template's
+        #? that do not publish an arm64 Amazon Linux 2023 AMI, so the template's
         #? `Fn::FindInMap [.., AMIArm64]` only resolves where arm64 is supported.
         #?
         declare region=${1:?} filters location id_x86 id_arm64 image_ids arm64_keys query
