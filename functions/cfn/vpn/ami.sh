@@ -128,7 +128,9 @@ function ami () {
         declare regions index ami
         # shellcheck disable=SC2207
         regions=( $(aws-region-list) )
-        for index in "${!regions[@]}"; do
+        # `${!regions[@]}` (array indices) yields values under zsh, not indices;
+        # the array is contiguous, so a counted loop is portable
+        for (( index = 0; index < ${#regions[@]}; index++ )); do
             printf "." >&2
             ami=$(__get_ami__ "${regions[index]}" | sed 's/  / /g')  # indent level: -1
             printf '"%s": %s' "${regions[index]}" "${ami:-{\}}"  # ami: None ==> {}

@@ -59,8 +59,13 @@
 #?   * https://en.wikipedia.org/wiki/Uniform_Resource_Identifier
 #?
 function parser () {
-    # get the last parameter
-    declare uri=${!#}
+    # zsh: make `=~` populate BASH_REMATCH like bash does (the setopt is
+    # scoped by the ksh emulation applied on import)
+    # shellcheck disable=SC3044
+    [[ -z ${ZSH_VERSION-} ]] || setopt bash_rematch
+
+    # get the last parameter (`${!#}` is bash-only; under zsh it expands as `$#`)
+    declare uri=${*: -1}
 
     #? mybucket.s3-ap-northeast-1.amazsonaws.com
     #? mybucket.s3.cn-north-1.amazsonaws.com.cn
@@ -75,7 +80,11 @@ function parser () {
     while getopts sahprbk opt; do
         case $opt in
             s|a|h|p)
-                xsh /uri/parser -$opt "$uri"
+                # capture in a subshell so the nested getopts (in /uri/parser)
+                # gets its own OPTIND: under zsh's ksh emulation OPTIND is shared
+                # between functions, so a direct call would reset this loop's
+                # OPTIND and spin forever
+                printf '%s\n' "$(xsh /uri/parser -"$opt" "$uri")"
                 ;;
             r|b)
                 declare scheme host
@@ -111,7 +120,8 @@ function parser () {
                 esac
                 ;;
             k)
-                xsh /uri/parser -r "$uri"
+                # subshell-isolate the nested getopts' OPTIND (see note above)
+                printf '%s\n' "$(xsh /uri/parser -r "$uri")"
                 ;;
             *)
                 return 255
