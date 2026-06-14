@@ -25,7 +25,7 @@
 #?                 If omit this, the URI is generated without key.
 #?
 #? Output:
-#?   * http[s]://[BUCKET.]s3-REGION.amazonaws.com/[/KEY]
+#?   * http[s]://[BUCKET.]s3.REGION.amazonaws.com/[/KEY]
 #?   * http[s]://[BUCKET.]s3.REGION.amazonaws.com.cn[/KEY]
 #?   * s3://BUCKET[/<KEY>]
 #?
@@ -86,13 +86,14 @@ function generate () {
                 return 255
             fi
 
-            # set default
-            declare delimiter='-'
+            # set default: use virtual-hosted-style dot delimiter for all regions.
+            # The legacy dash form (s3-REGION) is not supported by modern CloudFormation
+            # template URL validation. CN regions retain the dot delimiter and .cn suffix.
+            declare delimiter='.'
             declare domain_suffix=''
 
             # special logic for special region CN-*
             if [[ ${region%%-*} == 'cn' ]]; then
-                delimiter='.'
                 domain_suffix='.cn'
             fi
 

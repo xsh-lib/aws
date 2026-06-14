@@ -51,7 +51,14 @@ function validate () {
             aws cloudformation validate-template --template-url "$template" >/dev/null
             ;;
         '')
-            aws cloudformation validate-template --template-body "$(cat "$template")" >/dev/null
+            # CloudFormation's ValidateTemplate API rejects --template-body > 51200 bytes.
+            # For large templates, skip inline validation — CFN validates the template again
+            # when create-stack / update-stack is called with the S3 TemplateURL.
+            if (( $(wc -c < "$template") <= 51200 )); then
+                aws cloudformation validate-template --template-body "$(cat "$template")" >/dev/null
+            else
+                xsh log warn "template '$(basename "$template")': body size $(wc -c < "$template") bytes > 51200 limit; skipping inline validation."
+            fi
             ;;
         *)
             return 255
