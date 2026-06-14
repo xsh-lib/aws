@@ -75,19 +75,19 @@ function wait () {
     declare timeout_epoch
     timeout_epoch=$(($(date +%s) + timeout))
 
-    declare status left_epoch
+    declare __status left_epoch
     while [[ 1 ]]; do
-        status=$(xsh aws/cfn/stack/status/get "${region_opt[@]}" -s "$stack_name")
-        printf "%s: %s ..." "$(date '+%F %T')" "${status:-NULL}"
+        __status=$(xsh aws/cfn/stack/status/get "${region_opt[@]}" -s "$stack_name")
+        printf "%s: %s ..." "$(date '+%F %T')" "${__status:-NULL}"
 
         left_epoch=$((timeout_epoch - $(date +%s)))
 
         # exit loop if match expecting status
-        if [[ $status == $target_status ]]; then
+        if [[ $__status == $target_status ]]; then
             printf " [ok]\n"
             return
         # exit loop if reachs stable status
-        elif [[ -n $(xsh /array/search XSH_AWS_CFN__STACK_STATUS_STABLE "$status") ]]; then
+        elif [[ -n $(xsh /array/search XSH_AWS_CFN__STACK_STATUS_STABLE "$__status") ]]; then
             printf " [not match]\n"
             return 255
         # exit loop if time is out

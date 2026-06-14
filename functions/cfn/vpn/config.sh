@@ -348,11 +348,13 @@ function config () {
             __set_to_prefix_if_prefix_is_empty__ XACVC_XACC_ STACK_NAME
 
             # update
-            declare var config_var
+            declare var config_var value
             for var in "${XSH_AWS_CFN_VPN__CONFIG_VARS[@]}"; do
                 config_var=${var#XACVC_XACC_}
                 xsh log info "> updating $config_var ..."
-                x-util-sed-inplace "s|^$config_var=[^\"]*|$config_var=${!var}|" "$file"
+                # `${!var}` indirection is bash-only; `eval` is portable
+                eval "value=\${${var}}"
+                x-util-sed-inplace "s|^$config_var=[^\"]*|$config_var=${value}|" "$file"
             done
 
             # shellcheck disable=SC2034
@@ -365,10 +367,22 @@ function config () {
             __unset_options_env_for_stack_type__ "$stack_type"
 
             # update OPTIONS
-            for var in "${!XACVC_XACC_OPTIONS_@}"; do
+            # `${!PREFIX@}` (variable names by prefix) is bash-only; zsh uses
+            # its `parameters` association. The zsh-only syntax is eval-wrapped
+            # so bash never parses it, and vice versa.
+            declare -a __optvars
+            if [[ -n ${ZSH_VERSION-} ]]; then
+                # shellcheck disable=SC3044
+                zmodload zsh/parameter 2>/dev/null
+                eval '__optvars=( ${(k)parameters[(I)XACVC_XACC_OPTIONS_*]} )'
+            else
+                __optvars=( "${!XACVC_XACC_OPTIONS_@}" )
+            fi
+            for var in "${__optvars[@]}"; do
                 config_var=${var#XACVC_XACC_OPTIONS_}
                 xsh log info "> updating OPTIONS: $config_var ..."
-                __replace_option_value_by_name__ "$file" "$config_var" "${!var}"
+                eval "value=\${${var}}"
+                __replace_option_value_by_name__ "$file" "$config_var" "${value}"
             done
 
             # update OPTIONS:
@@ -438,12 +452,16 @@ function config () {
         declare __prefix__=${1:?}
         declare __this_vars__=("${@:2}")
 
-        declare __prefix_var__ __this_var__
+        declare __prefix_var__ __this_var__ __prefix_val__ __this_val__
         for __this_var__ in "${__this_vars__[@]}"; do
             __prefix_var__=${__prefix__}${__this_var__}
-            if [[ -z ${!__prefix_var__} ]]; then
+            # `${!name}` indirection is bash-only; `eval` is portable
+            eval "__prefix_val__=\${${__prefix_var__}}"
+            if [[ -z ${__prefix_val__} ]]; then
+                eval "__this_val__=\${${__this_var__}}"
+                # read into a dynamically-named variable (portable in both shells)
                 # shellcheck disable=SC2229
-                read -r "${__prefix_var__}" <<< "${!__this_var__}"
+                read -r "${__prefix_var__}" <<< "${__this_val__}"
             fi
         done
     }

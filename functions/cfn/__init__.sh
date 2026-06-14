@@ -97,35 +97,41 @@ source /dev/stdin <<< "${XSH_AWS_CFN__CFG_PROPERTIES[@]:?}"
 #?   ${index:3:1} in [2-5] : FAILED Status
 #?   ${index:3:1} in [6-9] : INPROGRESS Status
 #?
+# Status codes are a 4-digit classification key, decoded digit-by-digit below.
+# Stored as (code, name) pairs rather than a `[code]=name` sparse array: zsh
+# cannot represent sparse arrays (it pads up to the largest index), and bash 3.2
+# — the other supported target — has no associative arrays. The derived
+# *_STABLE / *_SERVICEABLE / ... arrays built below are consumed by value
+# (`[@]` and `/array/search`), never by index, so a flat list is equivalent.
 XSH_AWS_CFN__STACK_STATUS=(
-    [9607]=CREATE_IN_PROGRESS
-    [1403]=CREATE_FAILED
-    [1200]=CREATE_COMPLETE
+    9607 CREATE_IN_PROGRESS
+    1403 CREATE_FAILED
+    1200 CREATE_COMPLETE
 
-    [9617]=ROLLBACK_IN_PROGRESS
-    [1413]=ROLLBACK_FAILED
-    [1410]=ROLLBACK_COMPLETE
+    9617 ROLLBACK_IN_PROGRESS
+    1413 ROLLBACK_FAILED
+    1410 ROLLBACK_COMPLETE
 
-    [9627]=DELETE_IN_PROGRESS
-    [1423]=DELETE_FAILED
-    [1221]=DELETE_COMPLETE
+    9627 DELETE_IN_PROGRESS
+    1423 DELETE_FAILED
+    1221 DELETE_COMPLETE
 
-    [9637]=UPDATE_IN_PROGRESS
-    [9236]=UPDATE_COMPLETE_CLEANUP_IN_PROGRESS
-    [1230]=UPDATE_COMPLETE
-    [1433]=UPDATE_FAILED
-    [9437]=UPDATE_ROLLBACK_IN_PROGRESS
-    [1435]=UPDATE_ROLLBACK_FAILED
-    [9436]=UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS
-    [1430]=UPDATE_ROLLBACK_COMPLETE
+    9637 UPDATE_IN_PROGRESS
+    9236 UPDATE_COMPLETE_CLEANUP_IN_PROGRESS
+    1230 UPDATE_COMPLETE
+    1433 UPDATE_FAILED
+    9437 UPDATE_ROLLBACK_IN_PROGRESS
+    1435 UPDATE_ROLLBACK_FAILED
+    9436 UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS
+    1430 UPDATE_ROLLBACK_COMPLETE
 
-    [9647]=REVIEW_IN_PROGRESS
+    9647 REVIEW_IN_PROGRESS
 
-    [9657]=IMPORT_IN_PROGRESS
-    [1250]=IMPORT_COMPLETE
-    [9457]=IMPORT_ROLLBACK_IN_PROGRESS
-    [1453]=IMPORT_ROLLBACK_FAILED
-    [1450]=IMPORT_ROLLBACK_COMPLETE
+    9657 IMPORT_IN_PROGRESS
+    1250 IMPORT_COMPLETE
+    9457 IMPORT_ROLLBACK_IN_PROGRESS
+    1453 IMPORT_ROLLBACK_FAILED
+    1450 IMPORT_ROLLBACK_COMPLETE
 )
 
 #? Generate Variables:
@@ -150,42 +156,49 @@ XSH_AWS_CFN__STACK_STATUS=(
 #?   XSH_AWS_CFN__STACK_STATUS_FAILED
 #?   XSH_AWS_CFN__STACK_STATUS_INPROGRESS
 #?
-declare index
-for index in "${!XSH_AWS_CFN__STACK_STATUS[@]}"; do
+declare __i index __status
+# iterate the (code, name) pairs; append each name to the matching derived
+# arrays. Appending (rather than `arr[code]=name`) keeps the derived arrays
+# contiguous, which is required under zsh and equivalent for the value-based
+# consumers.
+for (( __i = 0; __i < ${#XSH_AWS_CFN__STACK_STATUS[@]}; __i += 2 )); do
+    index=${XSH_AWS_CFN__STACK_STATUS[__i]}
+    __status=${XSH_AWS_CFN__STACK_STATUS[$((__i + 1))]}
+
     # XSH_AWS_CFN__STACK_STATUS_STABLE
     # XSH_AWS_CFN__STACK_STATUS_UNSTABLE
     case ${index:0:1} in
         1)
-            XSH_AWS_CFN__STACK_STATUS_STABLE[index]=${XSH_AWS_CFN__STACK_STATUS[index]}
+            XSH_AWS_CFN__STACK_STATUS_STABLE+=("${__status}")
             ;;
         9)
-            XSH_AWS_CFN__STACK_STATUS_UNSTABLE[index]=${XSH_AWS_CFN__STACK_STATUS[index]}
+            XSH_AWS_CFN__STACK_STATUS_UNSTABLE+=("${__status}")
             ;;
     esac
-    
+
     # XSH_AWS_CFN__STACK_STATUS_SATISFIED
     # XSH_AWS_CFN__STACK_STATUS_UNSATISFIED
     # XSH_AWS_CFN__STACK_STATUS_SATISFYING
     case ${index:1:1} in
         2)
-            XSH_AWS_CFN__STACK_STATUS_SATISFIED[index]=${XSH_AWS_CFN__STACK_STATUS[index]}
+            XSH_AWS_CFN__STACK_STATUS_SATISFIED+=("${__status}")
             ;;
         4)
-            XSH_AWS_CFN__STACK_STATUS_UNSATISFIED[index]=${XSH_AWS_CFN__STACK_STATUS[index]}
+            XSH_AWS_CFN__STACK_STATUS_UNSATISFIED+=("${__status}")
             ;;
         6)
-            XSH_AWS_CFN__STACK_STATUS_SATISFYING[index]=${XSH_AWS_CFN__STACK_STATUS[index]}
+            XSH_AWS_CFN__STACK_STATUS_SATISFYING+=("${__status}")
             ;;
     esac
 
     # XSH_AWS_CFN__STACK_STATUS_SERVICEABLE
     # XSH_AWS_CFN__STACK_STATUS_UNSERVICEABLE
-    case $((index%2)) in
+    case $((index % 2)) in
         0)
-            XSH_AWS_CFN__STACK_STATUS_SERVICEABLE[index]=${XSH_AWS_CFN__STACK_STATUS[index]}
+            XSH_AWS_CFN__STACK_STATUS_SERVICEABLE+=("${__status}")
             ;;
         1)
-            XSH_AWS_CFN__STACK_STATUS_UNSERVICEABLE[index]=${XSH_AWS_CFN__STACK_STATUS[index]}
+            XSH_AWS_CFN__STACK_STATUS_UNSERVICEABLE+=("${__status}")
             ;;
     esac
 
@@ -197,22 +210,22 @@ for index in "${!XSH_AWS_CFN__STACK_STATUS[@]}"; do
     # XSH_AWS_CFN__STACK_STATUS_IMPORT
     case ${index:2:1} in
         0)
-            XSH_AWS_CFN__STACK_STATUS_CREATE[index]=${XSH_AWS_CFN__STACK_STATUS[index]}
+            XSH_AWS_CFN__STACK_STATUS_CREATE+=("${__status}")
             ;;
         1)
-            XSH_AWS_CFN__STACK_STATUS_ROLLBACK[index]=${XSH_AWS_CFN__STACK_STATUS[index]}
+            XSH_AWS_CFN__STACK_STATUS_ROLLBACK+=("${__status}")
             ;;
         2)
-            XSH_AWS_CFN__STACK_STATUS_DELETE[index]=${XSH_AWS_CFN__STACK_STATUS[index]}
+            XSH_AWS_CFN__STACK_STATUS_DELETE+=("${__status}")
             ;;
         3)
-            XSH_AWS_CFN__STACK_STATUS_UPDATE[index]=${XSH_AWS_CFN__STACK_STATUS[index]}
+            XSH_AWS_CFN__STACK_STATUS_UPDATE+=("${__status}")
             ;;
         4)
-            XSH_AWS_CFN__STACK_STATUS_REVIEW[index]=${XSH_AWS_CFN__STACK_STATUS[index]}
+            XSH_AWS_CFN__STACK_STATUS_REVIEW+=("${__status}")
             ;;
         5)
-            XSH_AWS_CFN__STACK_STATUS_IMPORT[index]=${XSH_AWS_CFN__STACK_STATUS[index]}
+            XSH_AWS_CFN__STACK_STATUS_IMPORT+=("${__status}")
             ;;
     esac
 
@@ -221,14 +234,14 @@ for index in "${!XSH_AWS_CFN__STACK_STATUS[@]}"; do
     # XSH_AWS_CFN__STACK_STATUS_INPROGRESS
     case ${index:3:1} in
         [0,1])
-            XSH_AWS_CFN__STACK_STATUS_COMPLETE[index]=${XSH_AWS_CFN__STACK_STATUS[index]}
+            XSH_AWS_CFN__STACK_STATUS_COMPLETE+=("${__status}")
             ;;
         [2-5])
-            XSH_AWS_CFN__STACK_STATUS_FAILED[index]=${XSH_AWS_CFN__STACK_STATUS[index]}
+            XSH_AWS_CFN__STACK_STATUS_FAILED+=("${__status}")
             ;;
         [6-9])
-            XSH_AWS_CFN__STACK_STATUS_INPROGRESS[index]=${XSH_AWS_CFN__STACK_STATUS[index]}
+            XSH_AWS_CFN__STACK_STATUS_INPROGRESS+=("${__status}")
             ;;
     esac
 done
-unset index
+unset __i index __status

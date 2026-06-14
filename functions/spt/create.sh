@@ -72,6 +72,6 @@ function create () {
         support create-case \
         --subject "${subject:?}" \
         --communication-body "${body:?}" \
-        --output text
-        "${options[@]}" \
+        --output text \
+        "${options[@]}"
 }
