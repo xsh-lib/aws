@@ -2,7 +2,8 @@
 [![GitHub](https://img.shields.io/github/license/xsh-lib/aws.svg?style=flat-square)](https://github.com/xsh-lib/aws/)
 [![GitHub last commit](https://img.shields.io/github/last-commit/xsh-lib/aws.svg?style=flat-square)](https://github.com/xsh-lib/aws/commits/master)
 
-[![Travis (.com)](https://img.shields.io/travis/com/xsh-lib/aws.svg?style=flat-square)](https://travis-ci.com/xsh-lib/aws)
+[![CI](https://github.com/xsh-lib/aws/actions/workflows/ci.yml/badge.svg)](https://github.com/xsh-lib/aws/actions/workflows/ci.yml)
+[![CodeFactor](https://www.codefactor.io/repository/github/xsh-lib/aws/badge)](https://www.codefactor.io/repository/github/xsh-lib/aws)
 [![GitHub issues](https://img.shields.io/github/issues/xsh-lib/aws.svg?style=flat-square)](https://github.com/xsh-lib/aws/issues)
 [![GitHub pull requests](https://img.shields.io/github/issues-pr/xsh-lib/aws.svg?style=flat-square)](https://github.com/xsh-lib/aws/pulls)
 
@@ -14,18 +15,20 @@ About xsh and its libraries, check out [xsh document](https://github.com/alexzha
 
 ## Requirements
 
-1. bash
+`xsh-lib/aws` is tested in CI ([GitHub Actions](https://github.com/xsh-lib/aws/actions/workflows/ci.yml)) on every push and pull request, across the following shell/OS combinations:
 
-    Tested with bash:
-    * 4.3.48 on Linux
-    * 3.2.57 on macOS
+| Shell | Version | OS                    | Tested |
+|-------|---------|-----------------------|:------:|
+| bash  | 3.2     | macOS                 | ✅     |
+| bash  | 4.4     | Linux (rockylinux:8)  | ✅     |
+| bash  | 5.x     | Linux (ubuntu-latest) | ✅     |
+| bash  | 5.x     | macOS (Homebrew)      | ✅     |
+| zsh   | 5.x     | Linux (ubuntu-latest) | ✅     |
+| zsh   | 5.x     | macOS                 | ✅     |
 
-    The utilities also run under **zsh** (the default shell on modern macOS):
-    xsh executes them under zsh's ksh emulation. Tested with zsh 5.x.
+zsh utilities run under xsh's ksh emulation and require **xsh ≥ 0.7.0**.
 
-1. awscli
-
-    Tested with `awscli 1.17.4`.
+Additionally requires **awscli** (tested with `awscli 1.17.4`).
 
 This project is still at version 0.x, and should be considered immature.
 
