@@ -17,11 +17,6 @@ jobs:
         shell: [bash, zsh]
     runs-on: ${{ matrix.os }}
     name: ${{ matrix.os }} / ${{ matrix.shell }}
-    # The zsh jobs install xsh from alexzhangs/xsh master and xsh-lib/core's
-    # latest stable tag, neither of which yet carries zsh support — so they
-    # stay red until those releases land. Keep them non-blocking until then.
-    # TODO: remove this once a zsh-supporting xsh + xsh-lib/core are released.
-    continue-on-error: ${{ matrix.shell == 'zsh' }}
 
     steps:
       - name: Install zsh (Linux)
