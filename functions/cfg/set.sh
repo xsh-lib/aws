@@ -23,13 +23,15 @@ function set () {
         return 255
     fi
 
-    declare n=2 property  # profile properties started at $2
+    declare n=2 property value  # profile properties started at $2
     for property in "${XSH_AWS_CFG_PROPERTIES[@]:?}"; do
         property=${property#*.}
+        # `${!n}` (positional indirection) is bash-only; `${*:N:1}` is portable
+        value=${*:$((n)):1}
         if [[ ${name} == default ]]; then
-            aws configure set "${name}.${property:?}" "${!n}"
+            aws configure set "${name}.${property:?}" "${value}"
         else
-            aws configure set "${property:?}" "${!n}" --profile "${name}"
+            aws configure set "${property:?}" "${value}" --profile "${name}"
         fi
         n=$((n+1))
     done

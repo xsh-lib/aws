@@ -58,16 +58,16 @@ function move () {
             printf "[yes]\n" | xsh /file/mark
             printf "checking the support case status ... "
 
-            declare status
-            status=$(aws --region us-east-1 \
+            declare __status
+            __status=$(aws --region us-east-1 \
                          --query '[].status' \
                          support describe-cases \
                          --case-id-list "$case_id" \
                          --include-resolved-cases)
 
-            printf "[%s]\n" "$status" | xsh /file/mark
+            printf "[%s]\n" "$__status" | xsh /file/mark
 
-            if [[ $status == Resolved ]]; then
+            if [[ $__status == Resolved ]]; then
                 printf 'continue to recheck the sandbox status.\n'
             else
                 printf 'please wait for the support case to be resolved, then continue.\n'
@@ -121,7 +121,14 @@ function move () {
         printf '%s\n' "${msg[@]}"
     fi
 
-    read -r -n 1 -s -p "press any key to continue, CTRL-C to exit."
+    # read a single keypress silently. bash: `-n 1 -p PROMPT`; zsh: `-k 1`
+    # with the prompt in the `name?prompt` spec (`-n`/`-p` differ in zsh).
+    if [[ -n ${ZSH_VERSION-} ]]; then
+        # shellcheck disable=SC2229,SC2034
+        read -r -s -k 1 "REPLY?press any key to continue, CTRL-C to exit."
+    else
+        read -r -n 1 -s -p "press any key to continue, CTRL-C to exit."
+    fi
     printf '\n\n'
     @move "${region_opt[@]}"
 }
