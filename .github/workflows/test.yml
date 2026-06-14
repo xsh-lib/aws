@@ -70,4 +70,5 @@ jobs:
           xsh load -b "${{ github.head_ref || github.ref_name }}" xsh-lib/aws
 
       - name: Run tests (${{ matrix.label }})
-        run: "$SHELL_PATH" ~/.xsh/repo/xsh-lib/aws/test.sh
+        run: |
+          "$SHELL_PATH" ~/.xsh/repo/xsh-lib/aws/test.sh
