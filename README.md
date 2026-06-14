@@ -3,6 +3,7 @@
 [![GitHub last commit](https://img.shields.io/github/last-commit/xsh-lib/aws.svg?style=flat-square)](https://github.com/xsh-lib/aws/commits/master)
 
 [![CI](https://github.com/xsh-lib/aws/actions/workflows/ci.yml/badge.svg)](https://github.com/xsh-lib/aws/actions/workflows/ci.yml)
+[![CodeFactor](https://www.codefactor.io/repository/github/xsh-lib/aws/badge)](https://www.codefactor.io/repository/github/xsh-lib/aws)
 [![GitHub issues](https://img.shields.io/github/issues/xsh-lib/aws.svg?style=flat-square)](https://github.com/xsh-lib/aws/issues)
 [![GitHub pull requests](https://img.shields.io/github/issues-pr/xsh-lib/aws.svg?style=flat-square)](https://github.com/xsh-lib/aws/pulls)
 
