@@ -20,6 +20,9 @@ About xsh and its libraries, check out [xsh document](https://github.com/alexzha
     * 4.3.48 on Linux
     * 3.2.57 on macOS
 
+    The utilities also run under **zsh** (the default shell on modern macOS):
+    xsh executes them under zsh's ksh emulation. Tested with zsh 5.x.
+
 1. awscli
 
     Tested with `awscli 1.17.4`.

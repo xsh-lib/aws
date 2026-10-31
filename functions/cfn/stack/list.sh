@@ -37,7 +37,7 @@
 function list () {
     declare OPTIND OPTARG opt
 
-    declare -a region_opt status query output
+    declare -a region_opt __status query output
 
     xsh imports /util/getopts/extra
 
@@ -49,7 +49,7 @@ function list () {
             s)
                 x-util-getopts-extra "$@"
                 # shellcheck disable=SC2207
-                status=(--stack-status-filter "${OPTARG[@]:?]}")
+                __status=(--stack-status-filter "${OPTARG[@]:?]}")
                 ;;
             q)
                 # the selector `|[]` strips the outer layer of `[]` in the result
@@ -68,5 +68,5 @@ function list () {
     # list stacks
     aws "${region_opt[@]}" "${query[@]}" "${output[@]}" \
         cloudformation list-stacks \
-        "${status[@]}"
+        "${__status[@]}"
 }

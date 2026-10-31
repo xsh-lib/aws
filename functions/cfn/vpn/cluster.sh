@@ -229,24 +229,30 @@ function cluster () {
     declare -a CONFIG_OPTIONS CREATE_OPTIONS UPDATE_OPTIONS DELETE_OPTIONS
 
     # create and/or update
-    declare operation operation_cluster_varname operation_options_varname
+    declare operation operation_cluster_varname operation_options_varname cluster_value
+    declare -a operation_options
     for operation in create update; do
         operation_cluster_varname="${operation}_cluster"
         operation_options_varname="$(x-string-upper "$operation")_OPTIONS[@]"
 
-        if [[ -n ${!operation_cluster_varname} ]]; then
-            __build_options__ "${!operation_cluster_varname}" "${stacks[*]}" "$region"
+        # `${!var}` scalar/array indirection is bash-only; `eval` is portable.
+        # The array form expands `NAME[@]` into separate elements in both shells.
+        eval "cluster_value=\${${operation_cluster_varname}}"
+        eval "operation_options=( \"\${${operation_options_varname}}\" )"
+
+        if [[ -n ${cluster_value} ]]; then
+            __build_options__ "${cluster_value}" "${stacks[*]}" "$region"
 
             if [[ ${stacks[0]} == 0 && ${#stacks[@]} -gt 1 ]]; then
                 # manager stack goes first
                 aws-cfn-vpn-config -x 0 "${CONFIG_OPTIONS[@]}"
-                aws-cfn-vpn-deploy -x 0 "${!operation_options_varname}"
+                aws-cfn-vpn-deploy -x 0 "${operation_options[@]}"
                 # node stacks goes next
                 aws-cfn-vpn-config -x "${stacks[@]:1}" "${CONFIG_OPTIONS[@]}"
-                aws-cfn-vpn-deploy -x "${stacks[@]:1}" "${!operation_options_varname}"
+                aws-cfn-vpn-deploy -x "${stacks[@]:1}" "${operation_options[@]}"
             else
                 aws-cfn-vpn-config -x "${stacks[@]}" "${CONFIG_OPTIONS[@]}"
-                aws-cfn-vpn-deploy -x "${stacks[@]}" "${!operation_options_varname}"
+                aws-cfn-vpn-deploy -x "${stacks[@]}" "${operation_options[@]}"
             fi
         fi
     done

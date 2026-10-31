@@ -14,24 +14,29 @@ function get () {
 
     function __get () {
         declare profile=$1 \
-                property varname
+                property varname value
 
         # output profile name as first field
         varname=${XSH_AWS_CFG_CONFIG_ENV_PREFIX}SECTIONS_${profile}
 
-        if [[ ! ${!varname+x} ]]; then  # the variable was not declared
+        # `${!varname...}` is bash-only indirection; `eval` does it portably
+        # (the variable name is built from controlled prefixes + parsed
+        # section names, not arbitrary input).
+        if ! eval "[[ \${${varname}+x} ]]"; then  # the variable was not declared
             varname=${XSH_AWS_CFG_CONFIG_ENV_PREFIX}SECTIONS_${profile#profile_}
         fi
-        printf "%s" "${!varname#profile }"
+        eval "value=\${${varname}#profile }"
+        printf "%s" "${value}"
 
         # output rest of properties as fields
         for property in "${XSH_AWS_CFG_PROPERTIES[@]:?}"; do
             varname=${property%.*}_SECTIONS_${profile}_VALUES_${property#*.}
 
-            if [[ ! ${!varname+x} ]]; then  # the variable was not declared
+            if ! eval "[[ \${${varname}+x} ]]"; then  # the variable was not declared
                 varname=${property%.*}_SECTIONS_${profile#profile_}_VALUES_${property#*.}
             fi
-            printf ",%s" "${!varname}"
+            eval "value=\${${varname}}"
+            printf ",%s" "${value}"
         done
 
         # end of line
@@ -46,8 +51,12 @@ function get () {
     # shellcheck disable=SC2125
     declare varname=${XSH_AWS_CFG_CONFIG_ENV_PREFIX}SECTIONS[@] \
             profile
+    declare -a profiles
+    # `${!varname}` array indirection (varname holds `NAME[@]`) is bash-only;
+    # `eval` expands the named array portably
+    eval "profiles=( \"\${${varname}}\" )"
 
-    for profile in "${!varname}"; do
+    for profile in "${profiles[@]}"; do
         if [[ -n ${name} ]]; then
             __get "${profile}" | grep "^${name}," || :
         else

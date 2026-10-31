@@ -136,15 +136,17 @@ function update () {
         options+=( --use-previous-template )
     fi
 
-    declare name
+    declare name value
     for name in template stack_policy stack_policy_during_update; do
-        if [[ -n ${!name} ]]; then
-            case $(xsh /uri/parser -s "${!name}" | xsh /string/lower) in
+        # `${!name}` indirection is bash-only; `eval` reads the named var portably
+        eval "value=\${${name}}"
+        if [[ -n ${value} ]]; then
+            case $(xsh /uri/parser -s "${value}" | xsh /string/lower) in
                 http|https)
-                    options+=( "--${name//_/-}-url" "${!name}" )
+                    options+=( "--${name//_/-}-url" "${value}" )
                     ;;
                 '')
-                    options+=( "--${name//_/-}-body" "$(cat "${!name}")" )
+                    options+=( "--${name//_/-}-body" "$(cat "${value}")" )
                     ;;
                 *)
                     return 255

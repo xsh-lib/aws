@@ -45,17 +45,17 @@ function domain-dkim () {
 
     aws "${region_lopt[@]}" ses verify-domain-dkim --domain "$domain" >/dev/null
 
-    declare out status
+    declare out __status
 
     out=$(aws "${region_lopt[@]}" ses get-identity-dkim-attributes --identities "$domain")
-    status=$(xsh /json/parser eval "$out" '{JSON}["DkimAttributes"]["'"$domain"'"]["DkimVerificationStatus"]')
+    __status=$(xsh /json/parser eval "$out" '{JSON}["DkimAttributes"]["'"$domain"'"]["DkimVerificationStatus"]')
 
     declare text="\
     * Record Type: CNAME
     * Name: %s._domainkey.%s
     * Value: %s.dkim.amazonses.com\n"
 
-    if [[ $status == Success ]]; then
+    if [[ $__status == Success ]]; then
         printf '[%s]\n' yes | xsh /file/mark
     else
         printf '[%s]\n' no | xsh /file/mark
@@ -75,7 +75,14 @@ function domain-dkim () {
 
         printf "then grab some coffee, it takes time for the DNS to take effect across the internet.\n"
 
-        read -r -n 1 -s -p "press any key to continue, CTRL-C to exit."
+        # read a single keypress silently. bash: `-n 1 -p PROMPT`; zsh: `-k 1`
+        # with the prompt in the `name?prompt` spec (`-n`/`-p` differ in zsh).
+        if [[ -n ${ZSH_VERSION-} ]]; then
+            # shellcheck disable=SC2229,SC2034
+            read -r -s -k 1 "REPLY?press any key to continue, CTRL-C to exit."
+        else
+            read -r -n 1 -s -p "press any key to continue, CTRL-C to exit."
+        fi
         printf '\n\n'
         @domain-dkim "${region_sopt[@]}" "$domain"
     fi

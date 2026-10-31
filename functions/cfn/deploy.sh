@@ -270,6 +270,11 @@
 #? @xsh imports aws/cfn/stack/create aws/cfn/stack/update aws/cfn/stack/delete aws/cfn/stack/event aws/cfn/stack/log
 #?
 function deploy () {
+    # zsh doesn't populate FUNCNAME; build it from zsh's funcstack so the
+    # `${FUNCNAME[0]}` references below (passed to x-trap-return to scope the
+    # trap to this function) work. No-op under bash, which sets FUNCNAME natively.
+    # shellcheck disable=SC2034,SC2154
+    [[ -z ${ZSH_VERSION-} ]] || declare -a FUNCNAME=( "${funcstack[@]}" )
 
     function __check_config_version__ () {
         declare version=${1:?}

@@ -24,7 +24,7 @@
 function access () {
     declare OPTIND OPTARG opt
     declare -a region_opt
-    declare instance_id status
+    declare instance_id __status
 
     while getopts r:i:s: opt; do
         case $opt in
@@ -35,7 +35,7 @@ function access () {
                 instance_id=$OPTARG
                 ;;
             s)
-                status=$OPTARG
+                __status=$OPTARG
                 ;;
             *)
                 return 255
@@ -43,11 +43,11 @@ function access () {
         esac
     done
 
-    if [[ $status == on ]]; then
+    if [[ $__status == on ]]; then
         aws "${region_opt[@]}" \
             rds modify-db-instance --db-instance-identifier "${instance_id:?}" \
             --publicly-accessible
-    elif [[ $status == off ]]; then
+    elif [[ $__status == off ]]; then
         aws "${region_opt[@]}" \
             rds modify-db-instance --db-instance-identifier "${instance_id:?}" \
             --no-publicly-accessible

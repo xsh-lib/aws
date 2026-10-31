@@ -45,17 +45,17 @@ function domain-identity () {
 
     aws "${region_opt[@]}" ses verify-domain-identity --domain "$domain" >/dev/null
 
-    declare out status
+    declare out __status
 
     out=$(aws "${region_opt[@]}" ses get-identity-verification-attributes --identities "$domain")
-    status=$(xsh /json/parser eval "$out" '{JSON}["VerificationAttributes"]["'$domain'"]["VerificationStatus"]')
+    __status=$(xsh /json/parser eval "$out" '{JSON}["VerificationAttributes"]["'$domain'"]["VerificationStatus"]')
 
     declare text="\
     * Record Type: TXT (Text)
     * TXT Name*: _amazonses.%s
     * TXT Value: %s\n"
 
-    if [[ $status == Success ]]; then
+    if [[ $__status == Success ]]; then
         printf '[%s]\n' yes | xsh /file/mark
     else
         printf '[%s]\n' no | xsh /file/mark
